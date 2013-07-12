@@ -219,7 +219,7 @@ public class LoginActivity extends Activity {
 	@Override
 	public void finish() {
 		//Intent intent = new Intent(this, POViewActivity.class);	
-		Intent intent = new Intent(this, ExpList.class);
+		Intent intent = new Intent(this, POListActivity.class);
 		startActivity(intent);	
 	}
 }

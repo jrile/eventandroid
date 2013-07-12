@@ -2,6 +2,7 @@ package com.eastcor.purchaseorder;
 
 import android.app.ExpandableListActivity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -15,7 +16,7 @@ import android.widget.ExpandableListView.OnGroupCollapseListener;
 import android.widget.ExpandableListView.OnGroupExpandListener;
 import android.widget.TextView;
 
-public class ExpList extends ExpandableListActivity {
+public class POListActivity extends ExpandableListActivity {
 
 	/**
 	 * This is adapter for expandable list-view for constructing the group and
@@ -123,7 +124,15 @@ public class ExpList extends ExpandableListActivity {
 	DisplayMetrics metrics;
 	int width;
 	ExpandableListView expList;
-
+	
+	@Override
+	public void onBackPressed() {
+		Intent intent = new Intent(Intent.ACTION_MAIN);
+		intent.addCategory(Intent.CATEGORY_HOME);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(intent);
+	}
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

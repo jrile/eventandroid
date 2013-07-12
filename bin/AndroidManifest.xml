@@ -26,7 +26,7 @@
             android:name="com.eastcor.purchaseorder.POViewActivity"
             android:label="@string/title_activity_poview" >
         </activity>
-        <activity android:name="ExpList"></activity>
+        <activity android:name="POListActivity"></activity>
     </application>
 
 </manifest>
