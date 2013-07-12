@@ -1,7 +1,5 @@
 package com.eastcor.purchaseorder;
 
-import java.io.Serializable;
-
 import android.app.ExpandableListActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -20,18 +18,18 @@ import android.widget.ExpandableListView.OnGroupExpandListener;
 import android.widget.TextView;
 
 public class POListActivity extends ExpandableListActivity {
-
+	public final static String EXTRA_PO_NUM = "com.eastcor.purchaseorder.PO_NUM";
 	/**
 	 * This is adapter for expandable list-view for constructing the group and
 	 * child elements.
 	 */
 	public class ExpAdapter extends BaseExpandableListAdapter {
+
 		private Context myContext;
 		private View children[];
 
 		public ExpAdapter(Context context) {
-			
-			
+
 			myContext = context;
 			children = new View[getGroupCount()];
 			for (int i = 0; i < getGroupCount(); i++) {
@@ -61,7 +59,25 @@ public class POListActivity extends ExpandableListActivity {
 
 							}
 						});
+				children[i].findViewById(R.id.download_pdf).setOnClickListener(
+						new OnClickListener() {
+							@Override
+							public void onClick(View v) {
+								Intent intent = new Intent(myContext, PdfDownloadActivity.class);
+								intent.putExtra(EXTRA_PO_NUM, temp);
+								
+								startActivity(intent);
+								
+								Log.e("downloadPdf", String.valueOf(temp));
+								downloadPdf(temp);
+							}
+						});
+
 			}
+
+		}
+		
+		public void downloadPdf(int index) {
 			
 		}
 
@@ -157,14 +173,13 @@ public class POListActivity extends ExpandableListActivity {
 	public Object onRetainNonConfigurationInstance() {
 		return ea;
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		ea = (ExpAdapter) getLastNonConfigurationInstance();
 		setContentView(R.layout.activity_poview);
-
 		expList = getExpandableListView();
 
 		metrics = new DisplayMetrics();
@@ -172,11 +187,11 @@ public class POListActivity extends ExpandableListActivity {
 		width = metrics.widthPixels;
 		expList.setIndicatorBounds(width - GetDipsFromPixel(50), width
 				- GetDipsFromPixel(10));
-		if(ea == null) {
+		if (ea == null) {
 			ea = new ExpAdapter(this);
 		}
 		expList.setAdapter(ea);
-		
+
 		expList.setOnGroupExpandListener(new OnGroupExpandListener() {
 			@Override
 			public void onGroupExpand(int groupPosition) {
@@ -213,5 +228,5 @@ public class POListActivity extends ExpandableListActivity {
 		// Convert the dps to pixels, based on density scale
 		return (int) (pixels * scale + 0.5f);
 	}
-	
+
 }

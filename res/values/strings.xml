@@ -14,7 +14,27 @@
     <string name="download_pdf">Download .pdf report</string>
     <string name="approve">Approve</string>
     <string name="reject">Reject</string>
-    <string name="rejectReason">Reject reason...</string>
+    <string name="rejectReason">Reject reason&#8230;</string>
     <string name="save">Save</string>
+    <string name="title_activity_pdf_download">PdfDownloadActivity</string>
+    <string name="vendor_label">Vendor:</string>
+    <string name="blank_vendor_data">Specialty Cases\n123 Sesame St.\nLaurel, MD 20723</string>
+    <string name="blank_buyer">jrile</string>
+    <string name="blank_payment_terms">CCD</string>
+    <string name="blank_fob_point">Origin</string>
+    <string name="blank_shipping_terms">Prepaid &amp; Billed</string>
+    <string name="blank_ship_via">Overnight</string>
+    <string name="blank_fullfillment_date">6/30/13 2:43 PM </string>
+    <string name="blank_ship_to">Eastcor\n8682 Brooks Drive\nEaston, MD 21601</string>
+    <string name="shipToLabel">Ship To:</string>
+    <string name="buyerLabel">Buyer:</string>
+    <string name="paymentTerms">Payment Terms:</string>
+    <string name="fobPoint">FOB Point:</string>
+    <string name="shippingTerms">Shipping Terms:</string>
+    <string name="shipVia">Ship Via:</string>
+    <string name="fullfillmentDateLabel">Fullfillment Date:</string>
+    <string name ="blank_items">Part/Description\t\t\t\t\t\t\t\t\t\t\tPrice\nPelican iM2100 storm case with...\t\t\t$88</string>
+    <string name="blank_total_price">Total: $88.00</string>
+
 
 </resources>
