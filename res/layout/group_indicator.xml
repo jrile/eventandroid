@@ -1,0 +1,6 @@
+<!--?xml version="1.0" encoding="utf-8"?-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
+    <item android:state_empty="true" android:drawable="@drawable/ic_expand"></item>
+    <item android:state_expanded="true" android:drawable="@drawable/ic_reduce"></item>
+    <item android:drawable="@drawable/ic_expand"></item>
+</selector>
