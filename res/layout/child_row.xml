@@ -1,3 +1,55 @@
-<!--?xml version="1.0" encoding="utf-8"?-->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="40dip" android:gravity="center_vertical">
-<TextView android:id="@+id/tvPlayerName" android:layout_width="wrap_content" android:layout_height="30dip" android:gravity="center_vertical"></TextView></LinearLayout>
+<!-- ?xml version="1.0" encoding="utf-8"? -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:paddingBottom="10dp"
+    android:paddingTop="10dp" >
+
+    <Button
+        android:id="@+id/download_pdf"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/download_pdf" />
+
+    <RadioGroup
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" 
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:textAlignment="center"
+        android:gravity="center"
+        >
+
+        <RadioButton
+            android:id="@+id/approve"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="approvePressed"
+            android:text="@string/approve" />
+
+        <RadioButton
+            android:id="@+id/reject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:onClick="rejectPressed"
+            android:text="@string/reject" />
+
+    </RadioGroup>
+    
+            <EditText
+            android:id="@+id/rejectReason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="@string/rejectReason"
+            android:visibility="gone"
+             >
+        </EditText>
+
+
+</LinearLayout>

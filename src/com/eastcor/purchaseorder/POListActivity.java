@@ -50,17 +50,13 @@ public class POListActivity extends ExpandableListActivity {
 				convertView = inflater.inflate(R.layout.child_row, parent, false);
 			}
 
-			TextView tvPlayerName = (TextView) convertView
-					.findViewById(R.id.tvPlayerName);
-			tvPlayerName
-					.setText(arrChildelements[groupPosition][childPosition]);
-
 			return convertView;
 		}
 
 		@Override
 		public int getChildrenCount(int groupPosition) {
-			return arrChildelements[groupPosition].length;
+			//return arrChildelements[groupPosition].length;
+			return 1; // set to 4: report link, approve button, reject reason + button 
 		}
 
 		@Override
@@ -105,12 +101,14 @@ public class POListActivity extends ExpandableListActivity {
 			return true;
 		}
 	}
+	
+	static View childElements[];
 
 	/**
 	 * strings for group elements
 	 */
-	static final String arrGroupelements[] = { "India", "Australia", "England",
-			"South Africa" };
+	static final String arrGroupelements[] = { "748: Mecsoft Corporation", "747: Custom Welding & Fabrication test test test test", "745: Lowes",
+			"681: Amazon" };
 
 	/**
 	 * strings for child elements
@@ -136,6 +134,9 @@ public class POListActivity extends ExpandableListActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		
+		
 		setContentView(R.layout.activity_poview);
 
 		expList = getExpandableListView();
@@ -179,4 +180,17 @@ public class POListActivity extends ExpandableListActivity {
 		// Convert the dps to pixels, based on density scale
 		return (int) (pixels * scale + 0.5f);
 	}
+	
+	
+	public void rejectPressed(View v) {
+	
+		TextView rejectReason = (TextView) findViewById(R.id.rejectReason);
+		rejectReason.setVisibility(View.VISIBLE);
+	}
+	
+	public void approvePressed(View v) {
+		TextView rejectReason = (TextView) findViewById(R.id.rejectReason);
+		rejectReason.setVisibility(View.GONE);
+	}
+
 }
