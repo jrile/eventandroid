@@ -17,18 +17,18 @@
     <RadioGroup
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal" 
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"
-        android:textAlignment="center"
+        android:freezesText="true"
         android:gravity="center"
-        >
+        android:orientation="horizontal"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp"
+        android:textAlignment="center" >
 
         <RadioButton
             android:id="@+id/approve"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="approvePressed"
+            android:freezesText="true"
             android:text="@string/approve" />
 
         <RadioButton
@@ -36,20 +36,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
-            android:onClick="rejectPressed"
+            android:freezesText="true"
             android:text="@string/reject" />
-
     </RadioGroup>
-    
-            <EditText
-            android:id="@+id/rejectReason"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:hint="@string/rejectReason"
-            android:visibility="gone"
-             >
-        </EditText>
 
+    <EditText
+        android:id="@+id/rejectReason"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:freezesText="true"
+        android:hint="@string/rejectReason"
+        android:visibility="gone" >
+    </EditText>
 
 </LinearLayout>

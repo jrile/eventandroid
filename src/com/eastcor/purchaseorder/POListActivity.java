@@ -8,12 +8,14 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.ExpandableListView.OnGroupCollapseListener;
 import android.widget.ExpandableListView.OnGroupExpandListener;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 public class POListActivity extends ExpandableListActivity {
@@ -23,40 +25,68 @@ public class POListActivity extends ExpandableListActivity {
 	 * child elements.
 	 */
 	public class ExpAdapter extends BaseExpandableListAdapter {
-
 		private Context myContext;
+		private View children[];
+		
 
 		public ExpAdapter(Context context) {
 			myContext = context;
+			if(children != null) {
+				
+			}
+			children = new View[getGroupCount()];
+			for (int i = 0; i < getGroupCount(); i++) {
+				LayoutInflater inflater = (LayoutInflater) myContext
+						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				children[i] = inflater.inflate(R.layout.child_row, null);
+				RadioButton approve = (RadioButton) children[i]
+						.findViewById(R.id.approve);
+				RadioButton reject = (RadioButton) children[i]
+						.findViewById(R.id.reject);
+				final int temp = i;
+				approve.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						TextView rejectReason = (TextView) children[temp]
+								.findViewById(R.id.rejectReason);
+						rejectReason.setVisibility(View.GONE);
+
+					}
+				});
+				reject.setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						TextView rejectReason = (TextView) children[temp]
+								.findViewById(R.id.rejectReason);
+						rejectReason.setVisibility(View.VISIBLE);
+						children[temp].findViewById(R.id.rejectReason).requestFocus();
+
+					}
+				});
+
+			}
 		}
 
 		@Override
 		public Object getChild(int groupPosition, int childPosition) {
-			return null;
+			return children[childPosition];
 		}
 
 		@Override
 		public long getChildId(int groupPosition, int childPosition) {
-			return 0;
+			return childPosition;
 		}
 
 		@Override
 		public View getChildView(int groupPosition, int childPosition,
 				boolean isLastChild, View convertView, ViewGroup parent) {
-
-			if (convertView == null) {
-				LayoutInflater inflater = (LayoutInflater) myContext
-						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				convertView = inflater.inflate(R.layout.child_row, parent, false);
-			}
-
+			convertView = children[groupPosition];
 			return convertView;
 		}
 
 		@Override
 		public int getChildrenCount(int groupPosition) {
-			//return arrChildelements[groupPosition].length;
-			return 1; // set to 4: report link, approve button, reject reason + button 
+			return 1;
 		}
 
 		@Override
@@ -81,7 +111,8 @@ public class POListActivity extends ExpandableListActivity {
 			if (convertView == null) {
 				LayoutInflater inflater = (LayoutInflater) myContext
 						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				convertView = inflater.inflate(R.layout.group_row,parent,false);
+				convertView = inflater.inflate(R.layout.group_row, parent,
+						false);
 			}
 
 			TextView tvGroupName = (TextView) convertView
@@ -101,28 +132,20 @@ public class POListActivity extends ExpandableListActivity {
 			return true;
 		}
 	}
-	
+
 	static View childElements[];
 
 	/**
 	 * strings for group elements
 	 */
-	static final String arrGroupelements[] = { "748: Mecsoft Corporation", "747: Custom Welding & Fabrication test test test test", "745: Lowes",
-			"681: Amazon" };
-
-	/**
-	 * strings for child elements
-	 */
-	static final String arrChildelements[][] = {
-			{ "Sachin Tendulkar", "Raina", "Dhoni", "Yuvi" },
-			{ "Ponting", "Adam Gilchrist", "Michael Clarke" },
-			{ "Andrew Strauss", "kevin Peterson", "Nasser Hussain" },
-			{ "Graeme Smith", "AB de villiers", "Jacques Kallis" } };
+	static final String arrGroupelements[] = { "748: Mecsoft Corporation",
+			"747: Custom Welding & Fabrication test test test test",
+			"745: Lowes", "681: Amazon" };
 
 	DisplayMetrics metrics;
 	int width;
 	ExpandableListView expList;
-	
+
 	@Override
 	public void onBackPressed() {
 		Intent intent = new Intent(Intent.ACTION_MAIN);
@@ -130,13 +153,11 @@ public class POListActivity extends ExpandableListActivity {
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);
 	}
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		
-		
+
 		setContentView(R.layout.activity_poview);
 
 		expList = getExpandableListView();
@@ -144,15 +165,17 @@ public class POListActivity extends ExpandableListActivity {
 		metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 		width = metrics.widthPixels;
-		// this code for adjusting the group indicator into right side of the
-		// view
 		expList.setIndicatorBounds(width - GetDipsFromPixel(50), width
 				- GetDipsFromPixel(10));
 		expList.setAdapter(new ExpAdapter(this));
-
 		expList.setOnGroupExpandListener(new OnGroupExpandListener() {
 			@Override
 			public void onGroupExpand(int groupPosition) {
+				for (int i = 0; i < expList.getChildCount(); i++) {
+					if (i != groupPosition) {
+						expList.collapseGroup(i);
+					}
+				}
 				Log.e("onGroupExpand", "OK");
 			}
 		});
@@ -172,7 +195,10 @@ public class POListActivity extends ExpandableListActivity {
 				return false;
 			}
 		});
+		
+
 	}
+	
 
 	public int GetDipsFromPixel(float pixels) {
 		// Get the screen's density scale
@@ -180,17 +206,4 @@ public class POListActivity extends ExpandableListActivity {
 		// Convert the dps to pixels, based on density scale
 		return (int) (pixels * scale + 0.5f);
 	}
-	
-	
-	public void rejectPressed(View v) {
-	
-		TextView rejectReason = (TextView) findViewById(R.id.rejectReason);
-		rejectReason.setVisibility(View.VISIBLE);
-	}
-	
-	public void approvePressed(View v) {
-		TextView rejectReason = (TextView) findViewById(R.id.rejectReason);
-		rejectReason.setVisibility(View.GONE);
-	}
-
 }
