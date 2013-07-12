@@ -1,5 +1,7 @@
 package com.eastcor.purchaseorder;
 
+import java.io.Serializable;
+
 import android.app.ExpandableListActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -15,7 +17,6 @@ import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
 import android.widget.ExpandableListView.OnGroupCollapseListener;
 import android.widget.ExpandableListView.OnGroupExpandListener;
-import android.widget.RadioButton;
 import android.widget.TextView;
 
 public class POListActivity extends ExpandableListActivity {
@@ -27,44 +28,41 @@ public class POListActivity extends ExpandableListActivity {
 	public class ExpAdapter extends BaseExpandableListAdapter {
 		private Context myContext;
 		private View children[];
-		
 
 		public ExpAdapter(Context context) {
+			
+			
 			myContext = context;
-			if(children != null) {
-				
-			}
 			children = new View[getGroupCount()];
 			for (int i = 0; i < getGroupCount(); i++) {
+				final int temp = i;
 				LayoutInflater inflater = (LayoutInflater) myContext
 						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 				children[i] = inflater.inflate(R.layout.child_row, null);
-				RadioButton approve = (RadioButton) children[i]
-						.findViewById(R.id.approve);
-				RadioButton reject = (RadioButton) children[i]
-						.findViewById(R.id.reject);
-				final int temp = i;
-				approve.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						TextView rejectReason = (TextView) children[temp]
-								.findViewById(R.id.rejectReason);
-						rejectReason.setVisibility(View.GONE);
+				children[i].findViewById(R.id.approve).setOnClickListener(
+						new OnClickListener() {
+							@Override
+							public void onClick(View v) {
+								TextView rejectReason = (TextView) children[temp]
+										.findViewById(R.id.rejectReason);
+								rejectReason.setVisibility(View.GONE);
 
-					}
-				});
-				reject.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						TextView rejectReason = (TextView) children[temp]
-								.findViewById(R.id.rejectReason);
-						rejectReason.setVisibility(View.VISIBLE);
-						children[temp].findViewById(R.id.rejectReason).requestFocus();
+							}
+						});
+				children[i].findViewById(R.id.reject).setOnClickListener(
+						new OnClickListener() {
+							@Override
+							public void onClick(View v) {
+								TextView rejectReason = (TextView) children[temp]
+										.findViewById(R.id.rejectReason);
+								rejectReason.setVisibility(View.VISIBLE);
+								children[temp].findViewById(R.id.rejectReason)
+										.requestFocus();
 
-					}
-				});
-
+							}
+						});
 			}
+			
 		}
 
 		@Override
@@ -145,6 +143,7 @@ public class POListActivity extends ExpandableListActivity {
 	DisplayMetrics metrics;
 	int width;
 	ExpandableListView expList;
+	ExpAdapter ea;
 
 	@Override
 	public void onBackPressed() {
@@ -155,9 +154,15 @@ public class POListActivity extends ExpandableListActivity {
 	}
 
 	@Override
+	public Object onRetainNonConfigurationInstance() {
+		return ea;
+	}
+	
+	@SuppressWarnings("deprecation")
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		ea = (ExpAdapter) getLastNonConfigurationInstance();
 		setContentView(R.layout.activity_poview);
 
 		expList = getExpandableListView();
@@ -167,7 +172,11 @@ public class POListActivity extends ExpandableListActivity {
 		width = metrics.widthPixels;
 		expList.setIndicatorBounds(width - GetDipsFromPixel(50), width
 				- GetDipsFromPixel(10));
-		expList.setAdapter(new ExpAdapter(this));
+		if(ea == null) {
+			ea = new ExpAdapter(this);
+		}
+		expList.setAdapter(ea);
+		
 		expList.setOnGroupExpandListener(new OnGroupExpandListener() {
 			@Override
 			public void onGroupExpand(int groupPosition) {
@@ -195,10 +204,8 @@ public class POListActivity extends ExpandableListActivity {
 				return false;
 			}
 		});
-		
 
 	}
-	
 
 	public int GetDipsFromPixel(float pixels) {
 		// Get the screen's density scale
@@ -206,4 +213,5 @@ public class POListActivity extends ExpandableListActivity {
 		// Convert the dps to pixels, based on density scale
 		return (int) (pixels * scale + 0.5f);
 	}
+	
 }
