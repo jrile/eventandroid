@@ -1,5 +1,8 @@
 package com.eastcor.purchaseorder;
 
+import android.accounts.Account;
+import android.accounts.AccountAuthenticatorResponse;
+import android.accounts.AccountManager;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -49,6 +52,7 @@ public class LoginActivity extends Activity {
 	private View mLoginFormView;
 	private View mLoginStatusView;
 	private TextView mLoginStatusMessageView;
+		
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -187,7 +191,8 @@ public class LoginActivity extends Activity {
 		@Override
 		protected Boolean doInBackground(Void... params) {
 			// TODO: attempt authentication against a network service.
-
+		
+			
 			if (user.equalsIgnoreCase("test") && pass.equals("t")) {
 				return true;
 			} else {
@@ -200,7 +205,7 @@ public class LoginActivity extends Activity {
 			mAuthTask = null;
 			showProgress(false);
 
-			if (success) {
+			if (success) {			
 				finish();
 			} else {
 				mPasswordView
@@ -218,6 +223,7 @@ public class LoginActivity extends Activity {
 	
 	@Override
 	public void finish() {	
+		
 		Intent intent = new Intent(this, POListActivity.class);
 		startActivity(intent);	
 		super.finish();

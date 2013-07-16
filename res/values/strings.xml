@@ -16,7 +16,7 @@
     <string name="reject">Reject</string>
     <string name="rejectReason">Reject reason&#8230;</string>
     <string name="save">Save</string>
-    <string name="title_activity_pdf_download">PdfDownloadActivity</string>
+    <string name="title_activity_pdf_download">Report</string>
     <string name="vendor_label">Vendor:</string>
     <string name="blank_vendor_data">Specialty Cases\n123 Sesame St.\nLaurel, MD 20723</string>
     <string name="blank_buyer">jrile</string>
@@ -33,8 +33,10 @@
     <string name="shippingTerms">Shipping Terms:</string>
     <string name="shipVia">Ship Via:</string>
     <string name="fullfillmentDateLabel">Fullfillment Date:</string>
-    <string name ="blank_items">Part/Description\t\t\t\t\t\t\t\t\t\t\tPrice\nPelican iM2100 storm case with...\t\t\t$88</string>
+    <string name="blank_items">Part/Description\t\t\t\t\t\t\t\t\t\t\tPrice\nPelican iM2100 storm case with...\t\t\t$88</string>
     <string name="blank_total_price">Total: $88.00</string>
-
+    <string name="title_activity_query_service">QueryService</string>
+    <string name="title_activity_query_receiver">Query Receiver</string>
+    <string name="title_activity_main">MainActivity</string>
 
 </resources>

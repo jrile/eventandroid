@@ -1,5 +1,7 @@
 package com.eastcor.purchaseorder;
 
+import java.util.ArrayList;
+
 import android.app.ExpandableListActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +21,7 @@ import android.widget.TextView;
 
 public class POListActivity extends ExpandableListActivity {
 	public final static String EXTRA_PO_NUM = "com.eastcor.purchaseorder.PO_NUM";
+
 	/**
 	 * This is adapter for expandable list-view for constructing the group and
 	 * child elements.
@@ -31,6 +34,7 @@ public class POListActivity extends ExpandableListActivity {
 		public ExpAdapter(Context context) {
 
 			myContext = context;
+
 			children = new View[getGroupCount()];
 			for (int i = 0; i < getGroupCount(); i++) {
 				final int temp = i;
@@ -63,26 +67,23 @@ public class POListActivity extends ExpandableListActivity {
 						new OnClickListener() {
 							@Override
 							public void onClick(View v) {
-								Intent intent = new Intent(myContext, PdfDownloadActivity.class);
+								Intent intent = new Intent(myContext,
+										PdfDownloadActivity.class);
 								intent.putExtra(EXTRA_PO_NUM, temp);
-								
+
 								startActivity(intent);
-								
+
 								Log.e("downloadPdf", String.valueOf(temp));
-								downloadPdf(temp);
 							}
 						});
 
 			}
 
 		}
-		
-		public void downloadPdf(int index) {
-			
-		}
 
 		@Override
 		public Object getChild(int groupPosition, int childPosition) {
+			Log.e("getChild [g#, c#]", groupPosition + " " + childPosition);
 			return children[childPosition];
 		}
 
@@ -94,6 +95,8 @@ public class POListActivity extends ExpandableListActivity {
 		@Override
 		public View getChildView(int groupPosition, int childPosition,
 				boolean isLastChild, View convertView, ViewGroup parent) {
+			Log.e("getChildView", groupPosition + " " + children.length + " "
+					+ childPosition);
 			convertView = children[groupPosition];
 			return convertView;
 		}
@@ -110,7 +113,8 @@ public class POListActivity extends ExpandableListActivity {
 
 		@Override
 		public int getGroupCount() {
-			return arrGroupelements.length;
+			Log.e("getGroupCount", groupElements.size() + "");
+			return groupElements.size();
 		}
 
 		@Override
@@ -131,7 +135,7 @@ public class POListActivity extends ExpandableListActivity {
 
 			TextView tvGroupName = (TextView) convertView
 					.findViewById(R.id.tvGroupName);
-			tvGroupName.setText(arrGroupelements[groupPosition]);
+			tvGroupName.setText(groupElements.get(groupPosition));
 
 			return convertView;
 		}
@@ -145,17 +149,14 @@ public class POListActivity extends ExpandableListActivity {
 		public boolean isChildSelectable(int groupPosition, int childPosition) {
 			return true;
 		}
-	}
 
-	static View childElements[];
+	}
 
 	/**
 	 * strings for group elements
 	 */
-	static final String arrGroupelements[] = { "748: Mecsoft Corporation",
-			"747: Custom Welding & Fabrication test test test test",
-			"745: Lowes", "681: Amazon" };
 
+	static final ArrayList<String> groupElements = new ArrayList<String>();
 	DisplayMetrics metrics;
 	int width;
 	ExpandableListView expList;
@@ -178,6 +179,7 @@ public class POListActivity extends ExpandableListActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		ea = (ExpAdapter) getLastNonConfigurationInstance();
 		setContentView(R.layout.activity_poview);
 		expList = getExpandableListView();
@@ -188,6 +190,13 @@ public class POListActivity extends ExpandableListActivity {
 		expList.setIndicatorBounds(width - GetDipsFromPixel(50), width
 				- GetDipsFromPixel(10));
 		if (ea == null) {
+			// PROCESS POS HERE AND THEN CREATE ADAPTER
+			// adapter depends on how many items are in groupElements.
+			groupElements.add("748: Mecsoft Corporation");
+			groupElements
+					.add("747: Custom Welding & Fabrication test test test test");
+			groupElements.add("745: Lowes");
+			groupElements.add("681: Amazon");
 			ea = new ExpAdapter(this);
 		}
 		expList.setAdapter(ea);
