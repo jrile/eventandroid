@@ -11,15 +11,21 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeUtility;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -236,21 +242,31 @@ public class LoginActivity extends Activity {
 
 		@Override
 		protected Boolean doInBackground(Void... params) {
-			// TODO: attempt authentication against a network service.
 			String result = null;
 			InputStream is;
 			try {
-				host = new URL("http://10.0.2.2:8080/FishbowlConnect");
+				host = new URL("http://10.0.2.2:8080/FishbowlConnect/login");
+				System.out.println(host.toString());
+	
+				
+				HttpPost httppost = new HttpPost(host.toString());
+				httppost.setHeader("Content-type", "application/x-www-form-urlencoded");
+				//HttpParams userParams = new BasicHttpParams();
+				
+				ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
+				postParams.add(new BasicNameValuePair("user", user));
+				postParams.add(new BasicNameValuePair("pass", encodePassword(pass)));
+				UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(postParams);
+				httppost.setEntity(formEntity);
+				
+				//userParams.setParameter("user=", user);
+				//userParams.setParameter("pass=", encodePassword(pass));
+				//httppost.setParams(userParams);
+				System.out.println(user + " " + encodePassword(pass));
+				HttpClient httpclient = new DefaultHttpClient();	
 
-				String attempt = host.toString() + "/login/" + user + "/"
-						+ encodePassword(pass);
-				System.out.println(attempt);
-				DefaultHttpClient httpclient = new DefaultHttpClient(
-						new BasicHttpParams());
-				HttpGet httpget = new HttpGet(attempt);
-				httpget.setHeader("Content-type", "application/xml");
 				is = null;
-				HttpResponse response = httpclient.execute(httpget);
+				HttpResponse response = httpclient.execute(httppost);
 				HttpEntity entity = response.getEntity();
 				Log.e("Response recieved", "Status code: "
 						+ response.getStatusLine().getStatusCode());
@@ -279,7 +295,11 @@ public class LoginActivity extends Activity {
 							token = t;
 							return true;
 						}
-						break;
+					}
+					else if (name != null && name.equals("error")) {
+						parser.next();
+						errorMsg += parser.getText();
+						return false;
 					}
 					parser.next();
 				}

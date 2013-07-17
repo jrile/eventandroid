@@ -192,6 +192,9 @@ public class POListActivity extends ExpandableListActivity {
 		if (ea == null) {
 			// PROCESS POS HERE AND THEN CREATE ADAPTER
 			// adapter depends on how many items are in groupElements.
+			
+			
+			
 			groupElements.add("748: Mecsoft Corporation");
 			groupElements
 					.add("747: Custom Welding & Fabrication test test test test");
