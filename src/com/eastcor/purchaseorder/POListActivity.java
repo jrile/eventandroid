@@ -113,7 +113,7 @@ public class POListActivity extends ExpandableListActivity {
 
 		@Override
 		public int getGroupCount() {
-			Log.e("getGroupCount", groupElements.size() + "");
+			//Log.e("getGroupCount", groupElements.size() + "");
 			return groupElements.size();
 		}
 

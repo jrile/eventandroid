@@ -1,8 +1,28 @@
 package com.eastcor.purchaseorder;
 
-import android.accounts.Account;
-import android.accounts.AccountAuthenticatorResponse;
-import android.accounts.AccountManager;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeUtility;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -12,28 +32,33 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
+import android.util.Xml;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Activity which displays a login screen to the user, offering registration as
  * well.
  */
 public class LoginActivity extends Activity {
-
 	/**
 	 * The default email to populate the email field with.
 	 */
 	public static final String EXTRA_EMAIL = "com.eastcor.purchaseorder.USER";
+	public static final String EXTRA_KEY = "com.eastcor.purchaseorder.KEY";
 
 	/**
 	 * Keep track of the login task to ensure we can cancel it if requested.
 	 */
 	private UserLoginTask mAuthTask = null;
-	
+
 	public static final String IA_NAME = "Purchase Order Status";
 	public static final String IA_DESC = "Allows the ability to update purchase order statuses.";
 	public static final int IA_KEY = 8675309;
@@ -41,29 +66,33 @@ public class LoginActivity extends Activity {
 	public static final String FISHBOWL_HOST = "localhost";
 	public static final int FISHBOWL_PORT = 28192;
 	public static final String EXTRA_USER = "com.eastcor.purchaseorder.USER";
+	public static URL host;
+	public static String token = null;
 
 	// Values for email and password at the time of the login attempt.
 	private String user;
 	private String pass;
 
 	// UI references.
-	private EditText mEmailView;
+	private Button mLoginButton;
+	private EditText mUsernameView;
 	private EditText mPasswordView;
 	private View mLoginFormView;
 	private View mLoginStatusView;
 	private TextView mLoginStatusMessageView;
-		
+	public static final String PREFS = "LoginPrefs";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
 		setContentView(R.layout.activity_login);
 
 		// Set up the login form.
-		user = getIntent().getStringExtra(EXTRA_EMAIL);
-		mEmailView = (EditText) findViewById(R.id.username);
-		mEmailView.setText(user);
+
+		mLoginButton = (Button) findViewById(R.id.sign_in_button);
+
+		mUsernameView = (EditText) findViewById(R.id.username);
+		mUsernameView.setText(user);
 
 		mPasswordView = (EditText) findViewById(R.id.password);
 		mPasswordView
@@ -72,12 +101,25 @@ public class LoginActivity extends Activity {
 					public boolean onEditorAction(TextView textView, int id,
 							KeyEvent keyEvent) {
 						if (id == R.id.login || id == EditorInfo.IME_NULL) {
-							attemptLogin();
+							mLoginButton.setPressed(true);
+							mLoginButton.performClick();
 							return true;
 						}
 						return false;
 					}
 				});
+		mPasswordView.setOnKeyListener(new View.OnKeyListener() {
+
+			public boolean onKey(View v, int keyCode, KeyEvent event) {
+				switch (event.getKeyCode()) {
+				case KeyEvent.KEYCODE_ENTER:
+					mLoginButton.setPressed(true);
+					mLoginButton.performClick();
+					return true;
+				}
+				return false;
+			}
+		});
 
 		mLoginFormView = findViewById(R.id.login_form);
 		mLoginStatusView = findViewById(R.id.login_status);
@@ -92,7 +134,6 @@ public class LoginActivity extends Activity {
 				});
 	}
 
-
 	/**
 	 * Attempts to sign in or register the account specified by the login form.
 	 * If there are form errors (invalid email, missing fields, etc.), the
@@ -104,11 +145,11 @@ public class LoginActivity extends Activity {
 		}
 
 		// Reset errors.
-		mEmailView.setError(null);
+		mUsernameView.setError(null);
 		mPasswordView.setError(null);
 
 		// Store values at the time of the login attempt.
-		user = mEmailView.getText().toString();
+		user = mUsernameView.getText().toString();
 		pass = mPasswordView.getText().toString();
 
 		boolean cancel = false;
@@ -119,14 +160,14 @@ public class LoginActivity extends Activity {
 			mPasswordView.setError(getString(R.string.error_field_required));
 			focusView = mPasswordView;
 			cancel = true;
-		} 
+		}
 
 		// Check for a valid email address.
 		if (TextUtils.isEmpty(user)) {
-			mEmailView.setError(getString(R.string.error_field_required));
-			focusView = mEmailView;
+			mUsernameView.setError(getString(R.string.error_field_required));
+			focusView = mUsernameView;
 			cancel = true;
-		} 
+		}
 
 		if (cancel) {
 			// There was an error; don't attempt login and focus the first
@@ -136,7 +177,9 @@ public class LoginActivity extends Activity {
 			// Show a progress spinner, and kick off a background task to
 			// perform the user login attempt.
 			mLoginStatusMessageView.setText(R.string.login_progress_signing_in);
+			hideSoftKeyboard(this);
 			showProgress(true);
+
 			mAuthTask = new UserLoginTask();
 			mAuthTask.execute((Void) null);
 		}
@@ -188,29 +231,94 @@ public class LoginActivity extends Activity {
 	 * the user.
 	 */
 	public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+		private boolean connectionError = false;
+		private String errorMsg;
+
 		@Override
 		protected Boolean doInBackground(Void... params) {
 			// TODO: attempt authentication against a network service.
-		
-			
-			if (user.equalsIgnoreCase("test") && pass.equals("t")) {
-				return true;
-			} else {
-				return false;
+			String result = null;
+			InputStream is;
+			try {
+				host = new URL("http://10.0.2.2:8080/FishbowlConnect");
+
+				String attempt = host.toString() + "/login/" + user + "/"
+						+ encodePassword(pass);
+				System.out.println(attempt);
+				DefaultHttpClient httpclient = new DefaultHttpClient(
+						new BasicHttpParams());
+				HttpGet httpget = new HttpGet(attempt);
+				httpget.setHeader("Content-type", "application/xml");
+				is = null;
+				HttpResponse response = httpclient.execute(httpget);
+				HttpEntity entity = response.getEntity();
+				Log.e("Response recieved", "Status code: "
+						+ response.getStatusLine().getStatusCode());
+				is = entity.getContent();
+				BufferedReader r = new BufferedReader(new InputStreamReader(is,
+						"UTF-8"), 8);
+				StringBuilder sb = new StringBuilder();
+				String line = null;
+				while ((line = r.readLine()) != null) {
+					sb.append(line + "\n");
+				}
+				// TODO: change xml parser input to inputstream directly
+				result = sb.toString();
+				// parse result, see if login was successful:
+				XmlPullParser parser = Xml.newPullParser();
+				parser.setInput(new StringReader(result));
+				parser.next();
+				while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
+					String name = parser.getName();
+					String text = parser.getText();
+					Log.e("Login XML Parse", name + " " + text);
+					if (name != null && name.equals("token")) {
+						parser.next();
+						String t = parser.getText();
+						if(t!=null) {
+							token = t;
+							return true;
+						}
+						break;
+					}
+					parser.next();
+				}
+
+			} catch (MalformedURLException e) {
+				Log.e("LoginActivity", "Malformed URL: " + e.getMessage());
+				connectionError = true;
+				errorMsg = e.getMessage();
+			} catch (IOException e) {
+				Log.e("LoginActivity", "Error connecting to server: " + e.getMessage());
+				connectionError = true;
+				errorMsg = e.getMessage();
+			} catch (XmlPullParserException e) {
+				Log.e("LoginActivity", "Error reading XML: " + e.getMessage());
+				connectionError = true;
+				errorMsg = e.getMessage();
 			}
+			return false;
 		}
 
 		@Override
 		protected void onPostExecute(final Boolean success) {
 			mAuthTask = null;
 			showProgress(false);
-
-			if (success) {			
+			if (success) {
+				System.out.println(token);
 				finish();
+				
 			} else {
-				mPasswordView
-						.setError(getString(R.string.error_incorrect_password));
-				mPasswordView.requestFocus();
+				if(connectionError) {
+					String temp = (errorMsg==null) ? "" : errorMsg +"\n\n";
+					temp += "Please try again later.";
+					Toast toast = Toast.makeText(getApplicationContext(), temp, Toast.LENGTH_LONG);
+					toast.show();
+				} else {
+					mPasswordView
+							.setError("Invalid username/password combination.");
+					mPasswordView.requestFocus();
+				}
 			}
 		}
 
@@ -219,13 +327,39 @@ public class LoginActivity extends Activity {
 			mAuthTask = null;
 			showProgress(false);
 		}
+
+	}
+
+	@Override
+	public void finish() {
+		Intent intent = new Intent(this, POListActivity.class);
+		startActivity(intent);
+		super.finish();
 	}
 	
-	@Override
-	public void finish() {	
-		
-		Intent intent = new Intent(this, POListActivity.class);
-		startActivity(intent);	
-		super.finish();
+	public static void hideSoftKeyboard(Activity activity) {
+	    InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+	    inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+	}
+
+	private static String encodePassword(String password) {
+		MessageDigest algorithm;
+		try {
+			algorithm = MessageDigest.getInstance("MD5");
+			algorithm.reset();
+			algorithm.update(password.getBytes());
+			byte[] encrypted = algorithm.digest();
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			OutputStream encoder = MimeUtility.encode(out, "base64");
+			encoder.write(encrypted);
+			encoder.flush();
+			return new String(out.toByteArray());
+		} catch (NoSuchAlgorithmException e) {
+			return "Bad Encryption";
+		} catch (MessagingException e) {
+			return "Bad Encryption";
+		} catch (IOException e) {
+			return "Bad Encryption";
+		}
 	}
 }

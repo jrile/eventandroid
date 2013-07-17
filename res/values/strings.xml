@@ -11,7 +11,7 @@
     <string name="poList">poList</string>
     <string name="hello_world">Hello world!</string>
     <string name="main_no_items">No items to display</string>
-    <string name="download_pdf">Download .pdf report</string>
+    <string name="download_pdf">View Report</string>
     <string name="approve">Approve</string>
     <string name="reject">Reject</string>
     <string name="rejectReason">Reject reason&#8230;</string>
@@ -38,5 +38,7 @@
     <string name="title_activity_query_service">QueryService</string>
     <string name="title_activity_query_receiver">Query Receiver</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="ACCOUNT_TYPE">Account Type</string>
+    <string name="login_error"></string>
 
 </resources>
