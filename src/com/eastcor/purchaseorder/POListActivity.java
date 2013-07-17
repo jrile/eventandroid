@@ -1,13 +1,37 @@
 package com.eastcor.purchaseorder;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 import android.app.ExpandableListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.Xml;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -21,7 +45,7 @@ import android.widget.TextView;
 
 public class POListActivity extends ExpandableListActivity {
 	public final static String EXTRA_PO_NUM = "com.eastcor.purchaseorder.PO_NUM";
-
+	private POListTask poTask = null;
 	/**
 	 * This is adapter for expandable list-view for constructing the group and
 	 * child elements.
@@ -31,6 +55,7 @@ public class POListActivity extends ExpandableListActivity {
 		private Context myContext;
 		private View children[];
 
+		
 		public ExpAdapter(Context context) {
 
 			myContext = context;
@@ -179,7 +204,7 @@ public class POListActivity extends ExpandableListActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		String errorMsg = "", result;
 		ea = (ExpAdapter) getLastNonConfigurationInstance();
 		setContentView(R.layout.activity_poview);
 		expList = getExpandableListView();
@@ -192,8 +217,8 @@ public class POListActivity extends ExpandableListActivity {
 		if (ea == null) {
 			// PROCESS POS HERE AND THEN CREATE ADAPTER
 			// adapter depends on how many items are in groupElements.
-			
-			
+			poTask = new POListTask();
+			poTask.execute((Void) null);
 			
 			groupElements.add("748: Mecsoft Corporation");
 			groupElements
@@ -239,6 +264,94 @@ public class POListActivity extends ExpandableListActivity {
 		final float scale = getResources().getDisplayMetrics().density;
 		// Convert the dps to pixels, based on density scale
 		return (int) (pixels * scale + 0.5f);
+	}
+	
+	public class POListTask extends AsyncTask<Void, Void, Boolean> {
+		private String result, errorMsg = "";
+		
+		
+		@Override
+		protected Boolean doInBackground(Void... arg0) {
+			try {
+				URL host = new URL("http://10.0.2.2:8080/FishbowlConnect/query/list");
+				HttpPost httppost = new HttpPost(host.toString());
+				httppost.setHeader("Content-type", "application/json");
+
+				ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
+				postParams.add(new BasicNameValuePair("token", LoginActivity.token));
+				UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(postParams);
+				httppost.setEntity(formEntity);
+				HttpClient httpclient = new DefaultHttpClient();	
+				HttpParams httpParams = httpclient.getParams();
+				HttpConnectionParams.setConnectionTimeout(httpParams, LoginActivity.HTTP_TIMEOUT);
+				InputStream is = null;
+				Log.i("poList onCreate", "Sending request for PO List");
+				HttpResponse response = httpclient.execute(httppost);
+				HttpEntity entity = response.getEntity();
+				Log.i("Response recieved", "Status code: "
+						+ response.getStatusLine().getStatusCode());
+				is = entity.getContent();
+				BufferedReader r = new BufferedReader(new InputStreamReader(is,
+						"UTF-8"), 8);
+				StringBuilder sb = new StringBuilder();
+				String line = null;
+				while ((line = r.readLine()) != null) {
+					sb.append(line + "\n");
+				}
+		  
+				result = sb.toString();
+				// parse result, see if login was successful:
+				XmlPullParser parser = Xml.newPullParser();
+				parser.setInput(new StringReader(result));
+
+				parser.next();
+				while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
+					String name = parser.getName();
+					String text = parser.getText();
+					Log.i("PO List XML Parse", name + " " + text);
+					if (name != null && name.equals("purchaseorder")) {
+						parser.next();
+						System.out.println(parser.getName() + parser.getText());
+						
+					}
+					else if (name != null && name.equals("error")) {
+						parser.next();
+						errorMsg += parser.getText();
+					}
+					parser.next();
+				}
+				is.close();
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ClientProtocolException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block 
+				e.printStackTrace();
+			} catch (XmlPullParserException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return true;
+		}
+		
+		@Override
+		protected void onCancelled() {
+			
+		}
+		
+		@Override
+		protected void onPostExecute(final Boolean success) {
+			
+		}
+		
+
+		
 	}
 
 }

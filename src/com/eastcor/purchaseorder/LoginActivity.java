@@ -24,7 +24,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -72,6 +72,7 @@ public class LoginActivity extends Activity {
 	public static final String FISHBOWL_HOST = "localhost";
 	public static final int FISHBOWL_PORT = 28192;
 	public static final String EXTRA_USER = "com.eastcor.purchaseorder.USER";
+	public static final int HTTP_TIMEOUT = 10000;
 	public static URL host;
 	public static String token = null;
 
@@ -243,32 +244,26 @@ public class LoginActivity extends Activity {
 		@Override
 		protected Boolean doInBackground(Void... params) {
 			String result = null;
-			InputStream is;
 			try {
 				host = new URL("http://10.0.2.2:8080/FishbowlConnect/login");
-				System.out.println(host.toString());
-	
 				
 				HttpPost httppost = new HttpPost(host.toString());
-				httppost.setHeader("Content-type", "application/x-www-form-urlencoded");
-				//HttpParams userParams = new BasicHttpParams();
+				httppost.setHeader("Content-type", "application/json");
 				
 				ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
 				postParams.add(new BasicNameValuePair("user", user));
 				postParams.add(new BasicNameValuePair("pass", encodePassword(pass)));
 				UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(postParams);
 				httppost.setEntity(formEntity);
-				
-				//userParams.setParameter("user=", user);
-				//userParams.setParameter("pass=", encodePassword(pass));
-				//httppost.setParams(userParams);
 				System.out.println(user + " " + encodePassword(pass));
 				HttpClient httpclient = new DefaultHttpClient();	
-
-				is = null;
+				HttpParams httpParams = httpclient.getParams();
+				HttpConnectionParams.setConnectionTimeout(httpParams, HTTP_TIMEOUT);
+				InputStream is = null;
+				Log.i("loginInBackground", "Login sent...");
 				HttpResponse response = httpclient.execute(httppost);
 				HttpEntity entity = response.getEntity();
-				Log.e("Response recieved", "Status code: "
+				Log.i("Response recieved", "Status code: "
 						+ response.getStatusLine().getStatusCode());
 				is = entity.getContent();
 				BufferedReader r = new BufferedReader(new InputStreamReader(is,
@@ -278,23 +273,26 @@ public class LoginActivity extends Activity {
 				while ((line = r.readLine()) != null) {
 					sb.append(line + "\n");
 				}
-				// TODO: change xml parser input to inputstream directly
+				
 				result = sb.toString();
 				// parse result, see if login was successful:
 				XmlPullParser parser = Xml.newPullParser();
 				parser.setInput(new StringReader(result));
+
 				parser.next();
 				while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
 					String name = parser.getName();
 					String text = parser.getText();
-					Log.e("Login XML Parse", name + " " + text);
+					Log.i("Login XML Parse", name + " " + text);
 					if (name != null && name.equals("token")) {
 						parser.next();
 						String t = parser.getText();
 						if(t!=null) {
 							token = t;
+							Log.i("Login XML Parse", "Recieved token: " + token);
 							return true;
 						}
+						
 					}
 					else if (name != null && name.equals("error")) {
 						parser.next();
@@ -303,6 +301,7 @@ public class LoginActivity extends Activity {
 					}
 					parser.next();
 				}
+				is.close();
 
 			} catch (MalformedURLException e) {
 				Log.e("LoginActivity", "Malformed URL: " + e.getMessage());
@@ -340,6 +339,7 @@ public class LoginActivity extends Activity {
 					mPasswordView.requestFocus();
 				}
 			}
+			
 		}
 
 		@Override
@@ -373,6 +373,7 @@ public class LoginActivity extends Activity {
 			OutputStream encoder = MimeUtility.encode(out, "base64");
 			encoder.write(encrypted);
 			encoder.flush();
+			encoder.close();
 			return new String(out.toByteArray());
 		} catch (NoSuchAlgorithmException e) {
 			return "Bad Encryption";
