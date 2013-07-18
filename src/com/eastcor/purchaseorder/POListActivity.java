@@ -9,6 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -46,6 +47,7 @@ import android.widget.TextView;
 public class POListActivity extends ExpandableListActivity {
 	public final static String EXTRA_PO_NUM = "com.eastcor.purchaseorder.PO_NUM";
 	private POListTask poTask = null;
+
 	/**
 	 * This is adapter for expandable list-view for constructing the group and
 	 * child elements.
@@ -55,7 +57,6 @@ public class POListActivity extends ExpandableListActivity {
 		private Context myContext;
 		private View children[];
 
-		
 		public ExpAdapter(Context context) {
 
 			myContext = context;
@@ -138,7 +139,7 @@ public class POListActivity extends ExpandableListActivity {
 
 		@Override
 		public int getGroupCount() {
-			//Log.e("getGroupCount", groupElements.size() + "");
+			// Log.e("getGroupCount", groupElements.size() + "");
 			return groupElements.size();
 		}
 
@@ -219,7 +220,7 @@ public class POListActivity extends ExpandableListActivity {
 			// adapter depends on how many items are in groupElements.
 			poTask = new POListTask();
 			poTask.execute((Void) null);
-			
+
 			groupElements.add("748: Mecsoft Corporation");
 			groupElements
 					.add("747: Custom Welding & Fabrication test test test test");
@@ -265,25 +266,28 @@ public class POListActivity extends ExpandableListActivity {
 		// Convert the dps to pixels, based on density scale
 		return (int) (pixels * scale + 0.5f);
 	}
-	
+
 	public class POListTask extends AsyncTask<Void, Void, Boolean> {
 		private String result, errorMsg = "";
-		
-		
+
 		@Override
 		protected Boolean doInBackground(Void... arg0) {
 			try {
-				URL host = new URL("http://10.0.2.2:8080/FishbowlConnect/query/list");
+				URL host = new URL(
+						"http://10.0.2.2:8080/FishbowlConnect/query/list");
 				HttpPost httppost = new HttpPost(host.toString());
 				httppost.setHeader("Content-type", "application/json");
 
 				ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
-				postParams.add(new BasicNameValuePair("token", LoginActivity.token));
-				UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(postParams);
+				postParams.add(new BasicNameValuePair("token",
+						LoginActivity.token));
+				UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(
+						postParams);
 				httppost.setEntity(formEntity);
-				HttpClient httpclient = new DefaultHttpClient();	
+				HttpClient httpclient = new DefaultHttpClient();
 				HttpParams httpParams = httpclient.getParams();
-				HttpConnectionParams.setConnectionTimeout(httpParams, LoginActivity.HTTP_TIMEOUT);
+				HttpConnectionParams.setConnectionTimeout(httpParams,
+						LoginActivity.HTTP_TIMEOUT);
 				InputStream is = null;
 				Log.i("poList onCreate", "Sending request for PO List");
 				HttpResponse response = httpclient.execute(httppost);
@@ -298,29 +302,70 @@ public class POListActivity extends ExpandableListActivity {
 				while ((line = r.readLine()) != null) {
 					sb.append(line + "\n");
 				}
-		  
 				result = sb.toString();
-				// parse result, see if login was successful:
+				r.close();
+				is.close();
+				// parse result, create the PO List
 				XmlPullParser parser = Xml.newPullParser();
 				parser.setInput(new StringReader(result));
-
 				parser.next();
-				while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
-					String name = parser.getName();
-					String text = parser.getText();
-					Log.i("PO List XML Parse", name + " " + text);
-					if (name != null && name.equals("purchaseorder")) {
-						parser.next();
-						System.out.println(parser.getName() + parser.getText());
-						
-					}
-					else if (name != null && name.equals("error")) {
-						parser.next();
-						errorMsg += parser.getText();
+				parser.require(XmlPullParser.START_TAG, null, "polist"); // make sure correct XML is posted
+				int type, poNum = -1;
+				float cost = 0;
+				String vendorName = null, vendorAddress = null, vendorCity = null, vendorZip = null, shipToName = null, shipToAddress = null, shipToCity = null, shipToZip = null, buyer = null, dateissued = null, shipterms = null, carrier = null, paymentTerms = null, fob = null, desc = null, tag = "";
+				HashMap<String, Float> partList = new HashMap<String, Float>();
+
+				while ((type = parser.getEventType()) != XmlPullParser.END_DOCUMENT) {
+					if (type == XmlPullParser.END_TAG) {
+						if (parser.getName().equals("purchaseorder")) {
+							// parsed all data for a single PO, add to list.
+							PurchaseOrder po = new PurchaseOrder(poNum, vendorName, buyer, vendorAddress, vendorCity, vendorZip, shipToName, shipToAddress, shipToCity, shipToZip, dateissued, shipterms, carrier, paymentTerms, fob, partList);
+							System.out.println(po.printParts());
+							partList.clear();
+						}
+						tag = "";
+					} else if (type == XmlPullParser.START_TAG) {
+						tag = parser.getName();
+					} else if (type == XmlPullParser.TEXT) {
+						if (tag.equals("ponum")) {
+							poNum = Integer.parseInt(parser.getText());
+						} else if (tag.equals("vendorname")) {
+							vendorName = parser.getText();
+						} else if (tag.equals("vendoraddress")) {
+							vendorAddress = parser.getText();
+						} else if (tag.equals("vendorcity")) {
+							vendorCity = parser.getText();
+						} else if (tag.equals("vendorzip")) {
+							vendorZip = parser.getText();
+						} else if (tag.equals("shiptoname")) {
+							shipToName = parser.getText();
+						} else if (tag.equals("shiptoaddress")) {
+							shipToAddress = parser.getText();
+						} else if (tag.equals("shiptocity")) {
+							shipToCity = parser.getText();
+						} else if (tag.equals("shiptozip")) {
+							shipToZip = parser.getText();
+						} else if (tag.equals("buyer")) {
+							buyer = parser.getText();
+						} else if (tag.equals("dateissued")) {
+							dateissued = parser.getText();
+						} else if (tag.equals("shipterms")) {
+							shipterms = parser.getText();
+						} else if (tag.equals("carrier")) {
+							carrier = parser.getText();
+						} else if (tag.equals("paymentterms")) {
+							paymentTerms = parser.getText();
+						} else if (tag.equals("fob")) {
+							fob = parser.getText();
+						} else if (tag.equals("desc")) {
+							desc = parser.getText();
+						} else if (tag.equals("cost")) {
+							cost = Float.parseFloat(parser.getText());
+							partList.put(desc, cost);
+						}
 					}
 					parser.next();
-				}
-				is.close();
+				}				
 			} catch (MalformedURLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -331,7 +376,7 @@ public class POListActivity extends ExpandableListActivity {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block 
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (XmlPullParserException e) {
 				// TODO Auto-generated catch block
@@ -339,19 +384,17 @@ public class POListActivity extends ExpandableListActivity {
 			}
 			return true;
 		}
-		
+
 		@Override
 		protected void onCancelled() {
-			
+
 		}
-		
+
 		@Override
 		protected void onPostExecute(final Boolean success) {
-			
-		}
-		
 
-		
+		}
+
 	}
 
 }
