@@ -40,5 +40,7 @@
     <string name="title_activity_main">MainActivity</string>
     <string name="ACCOUNT_TYPE">Account Type</string>
     <string name="login_error"></string>
+    <string name="refresh">Refresh</string>
+    <string name="refresh_progress">Grabbing information from database...</string>
 
 </resources>

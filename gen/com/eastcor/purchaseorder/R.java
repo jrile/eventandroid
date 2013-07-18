@@ -22,34 +22,38 @@ public final class R {
     }
     public static final class drawable {
         public static final int ic_expand=0x7f020000;
-        public static final int ic_launcher=0x7f020001;
-        public static final int ic_reduce=0x7f020002;
+        public static final int ic_launch=0x7f020001;
+        public static final int ic_launcher=0x7f020002;
+        public static final int ic_reduce=0x7f020003;
     }
     public static final class id {
         public static final int PO_Report=0x7f080007;
-        public static final int action_settings=0x7f080025;
-        public static final int approve=0x7f08001f;
+        public static final int action_settings=0x7f080028;
+        public static final int approve=0x7f080022;
         public static final int buyerLabel=0x7f08000d;
         public static final int buyerText=0x7f08000e;
-        public static final int download_pdf=0x7f08001e;
-        public static final int empty_text=0x7f080022;
+        public static final int download_pdf=0x7f080021;
+        public static final int empty_text=0x7f080025;
         public static final int fobPointLabel=0x7f080011;
         public static final int fobPointText=0x7f080012;
         public static final int fullfillmentDateLabel=0x7f080019;
         public static final int fullfillmentDateText=0x7f08001a;
-        public static final int groupname=0x7f080023;
+        public static final int groupname=0x7f080026;
         public static final int horizontalLayout=0x7f08000a;
         public static final int login=0x7f080005;
         public static final int login_form=0x7f080002;
         public static final int login_status=0x7f080000;
-        public static final int login_status_message=0x7f080001;
         public static final int partsText=0x7f08001b;
         public static final int password=0x7f080004;
         public static final int paymentTerms=0x7f08000f;
         public static final int paymentTermsText=0x7f080010;
-        public static final int reject=0x7f080020;
-        public static final int rejectReason=0x7f080021;
-        public static final int saveButton=0x7f08001d;
+        public static final int poLayout=0x7f08001d;
+        public static final int poList=0x7f08001e;
+        public static final int refresh=0x7f080020;
+        public static final int refresh_status_message=0x7f080001;
+        public static final int reject=0x7f080023;
+        public static final int rejectReason=0x7f080024;
+        public static final int saveButton=0x7f08001f;
         public static final int shipToLabel=0x7f080013;
         public static final int shipToText=0x7f080014;
         public static final int shipViaLabel=0x7f080017;
@@ -59,7 +63,7 @@ public final class R {
         public static final int sign_in_button=0x7f080006;
         public static final int totalPrice=0x7f08001c;
         public static final int totalPriceText=0x7f080008;
-        public static final int tvGroupName=0x7f080024;
+        public static final int tvGroupName=0x7f080027;
         public static final int username=0x7f080003;
         public static final int vendorLabel=0x7f08000b;
         public static final int vendorText=0x7f08000c;
@@ -85,7 +89,7 @@ public final class R {
     public static final class string {
         public static final int ACCOUNT_TYPE=0x7f050025;
         public static final int action_settings=0x7f050001;
-        public static final int action_sign_in_short=0x7f050029;
+        public static final int action_sign_in_short=0x7f05002b;
         public static final int app_name=0x7f050000;
         public static final int approve=0x7f05000b;
         public static final int blank_buyer=0x7f050012;
@@ -100,30 +104,32 @@ public final class R {
         public static final int blank_vendor_data=0x7f050011;
         public static final int buyerLabel=0x7f05001a;
         public static final int download_pdf=0x7f05000a;
-        public static final int error_field_required=0x7f05002e;
-        public static final int error_incorrect_password=0x7f05002d;
-        public static final int error_invalid_email=0x7f05002b;
-        public static final int error_invalid_password=0x7f05002c;
+        public static final int error_field_required=0x7f050030;
+        public static final int error_incorrect_password=0x7f05002f;
+        public static final int error_invalid_email=0x7f05002d;
+        public static final int error_invalid_password=0x7f05002e;
         public static final int fobPoint=0x7f05001c;
         public static final int fullfillmentDateLabel=0x7f05001f;
         public static final int hello_world=0x7f050008;
         public static final int login=0x7f050004;
         public static final int login_error=0x7f050026;
-        public static final int login_progress_signing_in=0x7f05002a;
+        public static final int login_progress_signing_in=0x7f05002c;
         public static final int main_no_items=0x7f050009;
         public static final int password=0x7f050003;
         public static final int paymentTerms=0x7f05001b;
         public static final int poList=0x7f050007;
         /**  Strings related to login 
          */
-        public static final int prompt_password=0x7f050028;
+        public static final int prompt_password=0x7f05002a;
+        public static final int refresh=0x7f050027;
+        public static final int refresh_progress=0x7f050028;
         public static final int reject=0x7f05000c;
         public static final int rejectReason=0x7f05000d;
         public static final int save=0x7f05000e;
         public static final int shipToLabel=0x7f050019;
         public static final int shipVia=0x7f05001e;
         public static final int shippingTerms=0x7f05001d;
-        public static final int title_activity_login=0x7f050027;
+        public static final int title_activity_login=0x7f050029;
         public static final int title_activity_main=0x7f050024;
         public static final int title_activity_pdf_download=0x7f05000f;
         public static final int title_activity_polist=0x7f050006;

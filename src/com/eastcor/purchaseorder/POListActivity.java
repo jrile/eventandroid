@@ -30,10 +30,14 @@ import org.apache.http.params.HttpParams;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.app.ExpandableListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -48,10 +52,13 @@ import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupExpandListener;
 import android.widget.RadioButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class POListActivity extends ExpandableListActivity {
 	public final static String EXTRA_PO_NUM = "com.eastcor.purchaseorder.PO_NUM";
 	private POListTask poTask = null;
+	private TextView mPoListGrabView;
+	private ExpandableListView poList;
 	/**
 	 * This is adapter for expandable list-view for constructing the group and
 	 * child elements.
@@ -181,7 +188,7 @@ public class POListActivity extends ExpandableListActivity {
 	 */
 
 	// static final ArrayList<String> groupElements = new ArrayList<String>();
-	static final ArrayList<PurchaseOrder> groupElements = new ArrayList<PurchaseOrder>();
+	static ArrayList<PurchaseOrder> groupElements = new ArrayList<PurchaseOrder>();
 	DisplayMetrics metrics;
 	int width;
 	ExpandableListView expList;
@@ -200,9 +207,57 @@ public class POListActivity extends ExpandableListActivity {
 		return ea;
 	}
 
+	/**
+	 * Shows the progress UI and hides the login form.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+	private void showProgress(final boolean show) {
+		// On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+		// for very easy animations. If available, use these APIs to fade-in
+		// the progress spinner.
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+			int shortAnimTime = getResources().getInteger(
+					android.R.integer.config_shortAnimTime);
+
+			mPoListGrabView.setVisibility(View.VISIBLE);
+			mPoListGrabView.animate().setDuration(shortAnimTime)
+					.alpha(show ? 1 : 0)
+					.setListener(new AnimatorListenerAdapter() {
+						@Override
+						public void onAnimationEnd(Animator animation) {
+							mPoListGrabView.setVisibility(show ? View.VISIBLE
+									: View.GONE);
+						}
+					});
+
+			mPoListGrabView.setVisibility(View.VISIBLE);
+			mPoListGrabView.animate().setDuration(shortAnimTime)
+					.alpha(show ? 0 : 1)
+					.setListener(new AnimatorListenerAdapter() {
+						@Override
+						public void onAnimationEnd(Animator animation) {
+							mPoListGrabView.setVisibility(show ? View.GONE
+									: View.VISIBLE);
+						}
+					});
+		} else {
+			// The ViewPropertyAnimator APIs are not available, so simply show
+			// and hide the relevant UI components.
+			mPoListGrabView.setVisibility(show ? View.VISIBLE : View.GONE);
+			poList.setVisibility(show ? View.GONE : View.VISIBLE);
+		}
+	}
+
+	public void refresh(View v) {
+		groupElements = new ArrayList<PurchaseOrder>();
+		ea = null;
+		finish();
+		startActivity(getIntent());
+	}
+
 	public void save(View v) {
 		try {
-			String xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n";
+			String xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<polist>\n";
 			for (int i = 0; i < ea.children.length; i++) {
 				RadioButton approve = (RadioButton) ea.children[i]
 						.findViewById(R.id.approve);
@@ -210,57 +265,96 @@ public class POListActivity extends ExpandableListActivity {
 						.findViewById(R.id.reject);
 				PurchaseOrder po = groupElements.get(i);
 				if (approve.isChecked()) {
-					xml += "<po>\n";
-					xml += "\t<number>" + po.getPoNum() + "</number>\n";
-					xml += "\t<status>accepted</status>\n</po>\n";
-					Log.i("Save Button Pressed", po.getVendorName()
-							+ " accepted.");
+					xml += "<po>";
+
+					xml += "<number>" + po.getPoNum() + "</number>";
+					xml += "<status>Approved</status></po>";
+					Log.i("Save Button Pressed",
+							po.getPoNum() + ": " + po.getVendorName()
+									+ " accepted.");
 				} else if (reject.isChecked()) {
 					EditText reasonText = (EditText) ea.children[i]
 							.findViewById(R.id.rejectReason);
 					String reason = reasonText.getText().toString();
-					xml += "<po>\n";
-					xml += "\t<number>" + po.getPoNum() + "</number>\n";
-					xml += "\t<status>rejected</status>\n";
+					xml += "<po>";
+					xml += "<number>" + po.getPoNum() + "</number>";
+					xml += "<status>Rejected</status>";
 					try {
-						xml += "\t<reason>"
-								+ URLEncoder.encode(reason, "UTF-8")
-								+ "</reason>\n</po>\n";
+						xml += "<reason>" + URLEncoder.encode(reason, "UTF-8")
+								+ "</reason></po>";
 					} catch (UnsupportedEncodingException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					Log.i("Save Button Pressed", po.getVendorName()
-							+ " rejected. Reason: " + reason);
+					Log.i("Save Button Pressed",
+							po.getPoNum() + ": " + po.getVendorName()
+									+ " rejected. Reason: " + reason);
 				}
 			}
-			System.out.println(xml);
-			URL host = new URL(
-					"http://10.0.2.2:8080/FishbowlConnect/query/update");
-			HttpPost httppost = new HttpPost(host.toString());
-			httppost.setHeader("Content-type", "application/x-www-form-urlencoded");
-			ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
-			postParams
-					.add(new BasicNameValuePair("token", LoginActivity.token));
-			postParams.add(new BasicNameValuePair("xml", xml));
-			UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(
-					postParams);
-			httppost.setEntity(formEntity);
-			HttpClient httpclient = new DefaultHttpClient();
-			HttpParams httpParams = httpclient.getParams();
-			HttpConnectionParams.setConnectionTimeout(httpParams,
-					LoginActivity.HTTP_TIMEOUT);
+			xml += "</polist>";
 			Log.i("Save Button Pressed", "Sending updates to server...");
-			HttpResponse response = httpclient.execute(httppost);
-			Log.i("Save Button Pressed", "Response received. Status code: " + response.getStatusLine().getStatusCode());
-			
-		} catch (Exception e) {
+			UpdateTask update = new UpdateTask(xml);
+			update.execute((Void) null);
+		} catch (IndexOutOfBoundsException e) {
+			// nothing to save...
+		}
+	}
+
+	public class UpdateTask extends AsyncTask<Void, Void, Boolean> {
+		private String xml;
+		boolean error = false;
+
+		public UpdateTask(String xml) {
+			super();
+			this.xml = xml;
+		}
+
+		@Override
+		protected Boolean doInBackground(Void... params) {
+			try {
+				URL host = new URL(
+						"http://10.0.2.2:8080/FishbowlConnect/query/update");
+				HttpPost httppost = new HttpPost(host.toString());
+				httppost.setHeader("Content-type", "application/xml");
+				ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
+				postParams.add(new BasicNameValuePair("token",
+						LoginActivity.token));
+				postParams.add(new BasicNameValuePair("xml", xml));
+				UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(
+						postParams);
+				httppost.setEntity(formEntity);
+				HttpClient httpclient = new DefaultHttpClient();
+				HttpParams httpParams = httpclient.getParams();
+				HttpConnectionParams.setConnectionTimeout(httpParams,
+						LoginActivity.HTTP_TIMEOUT);
+				HttpResponse response = httpclient.execute(httppost);
+				Log.i("Save Button Pressed", "Response received. Status code: "
+						+ response.getStatusLine().getStatusCode());
+				if (response.getStatusLine().getStatusCode() != 200) {
+					return false;
+				}
+				return true;
+			} catch (IOException e) {
+				return false;
+			}
 
 		}
-		
 
+		@Override
+		public void onPostExecute(Boolean result) {
+			if (result) {
+				Toast msg = Toast.makeText(getApplicationContext(),
+						"Purchase Order(s) successfully saved.",
+						Toast.LENGTH_LONG);
+				msg.show();
+			} else {
+				Toast msg = Toast.makeText(getApplicationContext(),
+						"There was an error saving! Please try again.",
+						Toast.LENGTH_LONG);
+				msg.show();
+			}
+		}
 	}
-	
 
 	@SuppressWarnings("deprecation")
 	@Override
@@ -326,7 +420,7 @@ public class POListActivity extends ExpandableListActivity {
 				URL host = new URL(
 						"http://10.0.2.2:8080/FishbowlConnect/query/list");
 				HttpPost httppost = new HttpPost(host.toString());
-				httppost.setHeader("Content-type", "application/json");
+				httppost.setHeader("Content-type", "application/xml");
 
 				ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
 				postParams.add(new BasicNameValuePair("token",
@@ -438,8 +532,7 @@ public class POListActivity extends ExpandableListActivity {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (XmlPullParserException e) {
-				// token has timed out
-				e.printStackTrace();
+				return false;
 			}
 			return true;
 		}

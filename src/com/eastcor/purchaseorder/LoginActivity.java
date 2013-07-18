@@ -65,12 +65,8 @@ public class LoginActivity extends Activity {
 	 */
 	private UserLoginTask mAuthTask = null;
 
-	public static final String IA_NAME = "Purchase Order Status";
-	public static final String IA_DESC = "Allows the ability to update purchase order statuses.";
 	public static final int IA_KEY = 8675309;
 	public static String ticketKey;
-	public static final String FISHBOWL_HOST = "localhost";
-	public static final int FISHBOWL_PORT = 28192;
 	public static final String EXTRA_USER = "com.eastcor.purchaseorder.USER";
 	public static final int HTTP_TIMEOUT = 10000;
 	public static URL host;
@@ -130,7 +126,7 @@ public class LoginActivity extends Activity {
 
 		mLoginFormView = findViewById(R.id.login_form);
 		mLoginStatusView = findViewById(R.id.login_status);
-		mLoginStatusMessageView = (TextView) findViewById(R.id.login_status_message);
+		mLoginStatusMessageView = (TextView) findViewById(R.id.refresh_status_message);
 
 		findViewById(R.id.sign_in_button).setOnClickListener(
 				new View.OnClickListener() {

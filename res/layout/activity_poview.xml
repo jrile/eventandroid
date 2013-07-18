@@ -1,33 +1,42 @@
 <!-- ?xml version="1.0" encoding="UTF-8"? -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/poLayout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
     <ExpandableListView
-        android:id="@+id/android:list"
+        android:id="@+id/poList"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_above="@+id/saveButton" >
-
     </ExpandableListView>
 
     <TextView
-        android:paddingLeft="10dip"
-        android:paddingTop="10dip"
         android:id="@+id/android:empty"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
+        android:paddingLeft="10dip"
+        android:paddingTop="10dip"
         android:text="@string/main_no_items" >
     </TextView>
+
+    <Button
+        android:id="@+id/refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:onClick="refresh"
+        android:text="@string/refresh" />
 
     <Button
         android:id="@+id/saveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
+        android:layout_toRightOf="@+id/refresh"
         android:onClick="save"
         android:text="@string/save" />
 
