@@ -181,7 +181,7 @@ public class LoginActivity extends Activity {
 			// form field with an error.
 			focusView.requestFocus();
 		} else {
-			// Show a progress spinner, and kick off a background task to
+			// Show a progress spinner, and start a background task to
 			// perform the user login attempt.
 			mLoginStatusMessageView.setText(R.string.login_progress_signing_in);
 			hideSoftKeyboard(this);
@@ -191,6 +191,7 @@ public class LoginActivity extends Activity {
 			mAuthTask.execute((Void) null);
 		}
 	}
+
 
 	/**
 	 * Shows the progress UI and hides the login form.
@@ -255,15 +256,14 @@ public class LoginActivity extends Activity {
 				postParams.add(new BasicNameValuePair("pass", encodePassword(pass)));
 				UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(postParams);
 				httppost.setEntity(formEntity);
-				System.out.println(user + " " + encodePassword(pass));
 				HttpClient httpclient = new DefaultHttpClient();	
 				HttpParams httpParams = httpclient.getParams();
 				HttpConnectionParams.setConnectionTimeout(httpParams, HTTP_TIMEOUT);
 				InputStream is = null;
-				Log.i("loginInBackground", "Login sent...");
+				Log.i("LoginActivity", "Login sent...");
 				HttpResponse response = httpclient.execute(httppost);
 				HttpEntity entity = response.getEntity();
-				Log.i("Response recieved", "Status code: "
+				Log.i("LoginActivity", "Response received. Status code: "
 						+ response.getStatusLine().getStatusCode());
 				is = entity.getContent();
 				BufferedReader r = new BufferedReader(new InputStreamReader(is,
@@ -282,22 +282,15 @@ public class LoginActivity extends Activity {
 				parser.next();
 				while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
 					String name = parser.getName();
-					String text = parser.getText();
-					Log.i("Login XML Parse", name + " " + text);
 					if (name != null && name.equals("token")) {
 						parser.next();
 						String t = parser.getText();
 						if(t!=null) {
 							token = t;
-							Log.i("Login XML Parse", "Recieved token: " + token);
+							Log.i("LoginActivity", "Retrieved valid token.");
 							return true;
 						}
 						
-					}
-					else if (name != null && name.equals("error")) {
-						parser.next();
-						errorMsg += parser.getText();
-						return false;
 					}
 					parser.next();
 				}
@@ -324,9 +317,7 @@ public class LoginActivity extends Activity {
 			mAuthTask = null;
 			showProgress(false);
 			if (success) {
-				System.out.println(token);
 				finish();
-				
 			} else {
 				if(connectionError) {
 					String temp = (errorMsg==null) ? "" : errorMsg +"\n\n";

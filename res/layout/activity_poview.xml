@@ -13,6 +13,8 @@
     </ExpandableListView>
 
     <TextView
+        android:paddingLeft="10dip"
+        android:paddingTop="10dip"
         android:id="@+id/android:empty"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
@@ -26,6 +28,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
+        android:onClick="save"
         android:text="@string/save" />
 
 </RelativeLayout>

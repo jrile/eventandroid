@@ -8,8 +8,13 @@ import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -38,16 +43,15 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
-import android.widget.ExpandableListView.OnChildClickListener;
-import android.widget.ExpandableListView.OnGroupCollapseListener;
 import android.widget.ExpandableListView.OnGroupExpandListener;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 public class POListActivity extends ExpandableListActivity {
 	public final static String EXTRA_PO_NUM = "com.eastcor.purchaseorder.PO_NUM";
 	private POListTask poTask = null;
-
 	/**
 	 * This is adapter for expandable list-view for constructing the group and
 	 * child elements.
@@ -55,7 +59,7 @@ public class POListActivity extends ExpandableListActivity {
 	public class ExpAdapter extends BaseExpandableListAdapter {
 
 		private Context myContext;
-		private View children[];
+		public View children[];
 
 		public ExpAdapter(Context context) {
 
@@ -74,7 +78,6 @@ public class POListActivity extends ExpandableListActivity {
 								TextView rejectReason = (TextView) children[temp]
 										.findViewById(R.id.rejectReason);
 								rejectReason.setVisibility(View.GONE);
-
 							}
 						});
 				children[i].findViewById(R.id.reject).setOnClickListener(
@@ -86,7 +89,6 @@ public class POListActivity extends ExpandableListActivity {
 								rejectReason.setVisibility(View.VISIBLE);
 								children[temp].findViewById(R.id.rejectReason)
 										.requestFocus();
-
 							}
 						});
 				children[i].findViewById(R.id.download_pdf).setOnClickListener(
@@ -96,9 +98,7 @@ public class POListActivity extends ExpandableListActivity {
 								Intent intent = new Intent(myContext,
 										PdfDownloadActivity.class);
 								intent.putExtra(EXTRA_PO_NUM, temp);
-
 								startActivity(intent);
-
 								Log.e("downloadPdf", String.valueOf(temp));
 							}
 						});
@@ -109,7 +109,6 @@ public class POListActivity extends ExpandableListActivity {
 
 		@Override
 		public Object getChild(int groupPosition, int childPosition) {
-			Log.e("getChild [g#, c#]", groupPosition + " " + childPosition);
 			return children[childPosition];
 		}
 
@@ -121,8 +120,6 @@ public class POListActivity extends ExpandableListActivity {
 		@Override
 		public View getChildView(int groupPosition, int childPosition,
 				boolean isLastChild, View convertView, ViewGroup parent) {
-			Log.e("getChildView", groupPosition + " " + children.length + " "
-					+ childPosition);
 			convertView = children[groupPosition];
 			return convertView;
 		}
@@ -161,7 +158,8 @@ public class POListActivity extends ExpandableListActivity {
 
 			TextView tvGroupName = (TextView) convertView
 					.findViewById(R.id.tvGroupName);
-			tvGroupName.setText(groupElements.get(groupPosition));
+			tvGroupName
+					.setText(groupElements.get(groupPosition).getListTitle());
 
 			return convertView;
 		}
@@ -182,7 +180,8 @@ public class POListActivity extends ExpandableListActivity {
 	 * strings for group elements
 	 */
 
-	static final ArrayList<String> groupElements = new ArrayList<String>();
+	// static final ArrayList<String> groupElements = new ArrayList<String>();
+	static final ArrayList<PurchaseOrder> groupElements = new ArrayList<PurchaseOrder>();
 	DisplayMetrics metrics;
 	int width;
 	ExpandableListView expList;
@@ -201,11 +200,72 @@ public class POListActivity extends ExpandableListActivity {
 		return ea;
 	}
 
+	public void save(View v) {
+		try {
+			String xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n";
+			for (int i = 0; i < ea.children.length; i++) {
+				RadioButton approve = (RadioButton) ea.children[i]
+						.findViewById(R.id.approve);
+				RadioButton reject = (RadioButton) ea.children[i]
+						.findViewById(R.id.reject);
+				PurchaseOrder po = groupElements.get(i);
+				if (approve.isChecked()) {
+					xml += "<po>\n";
+					xml += "\t<number>" + po.getPoNum() + "</number>\n";
+					xml += "\t<status>accepted</status>\n</po>\n";
+					Log.i("Save Button Pressed", po.getVendorName()
+							+ " accepted.");
+				} else if (reject.isChecked()) {
+					EditText reasonText = (EditText) ea.children[i]
+							.findViewById(R.id.rejectReason);
+					String reason = reasonText.getText().toString();
+					xml += "<po>\n";
+					xml += "\t<number>" + po.getPoNum() + "</number>\n";
+					xml += "\t<status>rejected</status>\n";
+					try {
+						xml += "\t<reason>"
+								+ URLEncoder.encode(reason, "UTF-8")
+								+ "</reason>\n</po>\n";
+					} catch (UnsupportedEncodingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					Log.i("Save Button Pressed", po.getVendorName()
+							+ " rejected. Reason: " + reason);
+				}
+			}
+			System.out.println(xml);
+			URL host = new URL(
+					"http://10.0.2.2:8080/FishbowlConnect/query/update");
+			HttpPost httppost = new HttpPost(host.toString());
+			httppost.setHeader("Content-type", "application/x-www-form-urlencoded");
+			ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
+			postParams
+					.add(new BasicNameValuePair("token", LoginActivity.token));
+			postParams.add(new BasicNameValuePair("xml", xml));
+			UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(
+					postParams);
+			httppost.setEntity(formEntity);
+			HttpClient httpclient = new DefaultHttpClient();
+			HttpParams httpParams = httpclient.getParams();
+			HttpConnectionParams.setConnectionTimeout(httpParams,
+					LoginActivity.HTTP_TIMEOUT);
+			Log.i("Save Button Pressed", "Sending updates to server...");
+			HttpResponse response = httpclient.execute(httppost);
+			Log.i("Save Button Pressed", "Response received. Status code: " + response.getStatusLine().getStatusCode());
+			
+		} catch (Exception e) {
+
+		}
+		
+
+	}
+	
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		String errorMsg = "", result;
 		ea = (ExpAdapter) getLastNonConfigurationInstance();
 		setContentView(R.layout.activity_poview);
 		expList = getExpandableListView();
@@ -217,16 +277,23 @@ public class POListActivity extends ExpandableListActivity {
 				- GetDipsFromPixel(10));
 		if (ea == null) {
 			// PROCESS POS HERE AND THEN CREATE ADAPTER
-			// adapter depends on how many items are in groupElements.
 			poTask = new POListTask();
 			poTask.execute((Void) null);
+			try {
+				poTask.get(60, TimeUnit.SECONDS);
 
-			groupElements.add("748: Mecsoft Corporation");
-			groupElements
-					.add("747: Custom Welding & Fabrication test test test test");
-			groupElements.add("745: Lowes");
-			groupElements.add("681: Amazon");
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (TimeoutException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			ea = new ExpAdapter(this);
+			Log.i("onCreate", "Proceeding with creating adapter");
 		}
 		expList.setAdapter(ea);
 
@@ -238,23 +305,6 @@ public class POListActivity extends ExpandableListActivity {
 						expList.collapseGroup(i);
 					}
 				}
-				Log.e("onGroupExpand", "OK");
-			}
-		});
-
-		expList.setOnGroupCollapseListener(new OnGroupCollapseListener() {
-			@Override
-			public void onGroupCollapse(int groupPosition) {
-				Log.e("onGroupCollapse", "OK");
-			}
-		});
-
-		expList.setOnChildClickListener(new OnChildClickListener() {
-			@Override
-			public boolean onChildClick(ExpandableListView parent, View v,
-					int groupPosition, int childPosition, long id) {
-				Log.e("OnChildClickListener", "OK");
-				return false;
 			}
 		});
 
@@ -268,7 +318,7 @@ public class POListActivity extends ExpandableListActivity {
 	}
 
 	public class POListTask extends AsyncTask<Void, Void, Boolean> {
-		private String result, errorMsg = "";
+		private String result;
 
 		@Override
 		protected Boolean doInBackground(Void... arg0) {
@@ -289,10 +339,10 @@ public class POListActivity extends ExpandableListActivity {
 				HttpConnectionParams.setConnectionTimeout(httpParams,
 						LoginActivity.HTTP_TIMEOUT);
 				InputStream is = null;
-				Log.i("poList onCreate", "Sending request for PO List");
+				Log.i("POList", "Sending request for PO List...");
 				HttpResponse response = httpclient.execute(httppost);
 				HttpEntity entity = response.getEntity();
-				Log.i("Response recieved", "Status code: "
+				Log.i("POList", "Response recieved. Status code: "
 						+ response.getStatusLine().getStatusCode());
 				is = entity.getContent();
 				BufferedReader r = new BufferedReader(new InputStreamReader(is,
@@ -309,19 +359,28 @@ public class POListActivity extends ExpandableListActivity {
 				XmlPullParser parser = Xml.newPullParser();
 				parser.setInput(new StringReader(result));
 				parser.next();
-				parser.require(XmlPullParser.START_TAG, null, "polist"); // make sure correct XML is posted
+				parser.require(XmlPullParser.START_TAG, null, "polist"); // make
+																			// sure
+																			// correct
+																			// XML
+																			// is
+																			// posted
 				int type, poNum = -1;
 				float cost = 0;
 				String vendorName = null, vendorAddress = null, vendorCity = null, vendorZip = null, shipToName = null, shipToAddress = null, shipToCity = null, shipToZip = null, buyer = null, dateissued = null, shipterms = null, carrier = null, paymentTerms = null, fob = null, desc = null, tag = "";
-				HashMap<String, Float> partList = new HashMap<String, Float>();
-
+				HashMap<String, Float> partList = new LinkedHashMap<String, Float>();
 				while ((type = parser.getEventType()) != XmlPullParser.END_DOCUMENT) {
 					if (type == XmlPullParser.END_TAG) {
 						if (parser.getName().equals("purchaseorder")) {
 							// parsed all data for a single PO, add to list.
-							PurchaseOrder po = new PurchaseOrder(poNum, vendorName, buyer, vendorAddress, vendorCity, vendorZip, shipToName, shipToAddress, shipToCity, shipToZip, dateissued, shipterms, carrier, paymentTerms, fob, partList);
-							System.out.println(po.printParts());
-							partList.clear();
+							PurchaseOrder po = new PurchaseOrder(poNum,
+									vendorName, vendorAddress, vendorCity,
+									vendorZip, shipToName, shipToAddress,
+									shipToCity, shipToZip, buyer, dateissued,
+									shipterms, carrier, paymentTerms, fob,
+									partList);
+							groupElements.add(po);
+							partList = new HashMap<String, Float>();
 						}
 						tag = "";
 					} else if (type == XmlPullParser.START_TAG) {
@@ -365,7 +424,7 @@ public class POListActivity extends ExpandableListActivity {
 						}
 					}
 					parser.next();
-				}				
+				}
 			} catch (MalformedURLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -379,22 +438,11 @@ public class POListActivity extends ExpandableListActivity {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (XmlPullParserException e) {
-				// TODO Auto-generated catch block
+				// token has timed out
 				e.printStackTrace();
 			}
 			return true;
 		}
-
-		@Override
-		protected void onCancelled() {
-
-		}
-
-		@Override
-		protected void onPostExecute(final Boolean success) {
-
-		}
-
 	}
 
 }
