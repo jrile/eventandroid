@@ -6,7 +6,7 @@
     android:orientation="vertical" >
 
     <ExpandableListView
-        android:id="@+id/poList"
+        android:id="@android:id/list"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_above="@+id/saveButton" >

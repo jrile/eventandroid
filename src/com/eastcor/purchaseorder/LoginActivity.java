@@ -125,8 +125,8 @@ public class LoginActivity extends Activity {
 		});
 
 		mLoginFormView = findViewById(R.id.login_form);
-		mLoginStatusView = findViewById(R.id.login_status);
-		mLoginStatusMessageView = (TextView) findViewById(R.id.refresh_status_message);
+		mLoginStatusView = findViewById(R.id.refresh_status);
+		mLoginStatusMessageView = (TextView) findViewById(R.id.login_status_message);
 
 		findViewById(R.id.sign_in_button).setOnClickListener(
 				new View.OnClickListener() {

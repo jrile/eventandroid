@@ -30,14 +30,10 @@ import org.apache.http.params.HttpParams;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.app.ExpandableListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -57,8 +53,6 @@ import android.widget.Toast;
 public class POListActivity extends ExpandableListActivity {
 	public final static String EXTRA_PO_NUM = "com.eastcor.purchaseorder.PO_NUM";
 	private POListTask poTask = null;
-	private TextView mPoListGrabView;
-	private ExpandableListView poList;
 	/**
 	 * This is adapter for expandable list-view for constructing the group and
 	 * child elements.
@@ -207,46 +201,6 @@ public class POListActivity extends ExpandableListActivity {
 		return ea;
 	}
 
-	/**
-	 * Shows the progress UI and hides the login form.
-	 */
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-	private void showProgress(final boolean show) {
-		// On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-		// for very easy animations. If available, use these APIs to fade-in
-		// the progress spinner.
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-			int shortAnimTime = getResources().getInteger(
-					android.R.integer.config_shortAnimTime);
-
-			mPoListGrabView.setVisibility(View.VISIBLE);
-			mPoListGrabView.animate().setDuration(shortAnimTime)
-					.alpha(show ? 1 : 0)
-					.setListener(new AnimatorListenerAdapter() {
-						@Override
-						public void onAnimationEnd(Animator animation) {
-							mPoListGrabView.setVisibility(show ? View.VISIBLE
-									: View.GONE);
-						}
-					});
-
-			mPoListGrabView.setVisibility(View.VISIBLE);
-			mPoListGrabView.animate().setDuration(shortAnimTime)
-					.alpha(show ? 0 : 1)
-					.setListener(new AnimatorListenerAdapter() {
-						@Override
-						public void onAnimationEnd(Animator animation) {
-							mPoListGrabView.setVisibility(show ? View.GONE
-									: View.VISIBLE);
-						}
-					});
-		} else {
-			// The ViewPropertyAnimator APIs are not available, so simply show
-			// and hide the relevant UI components.
-			mPoListGrabView.setVisibility(show ? View.VISIBLE : View.GONE);
-			poList.setVisibility(show ? View.GONE : View.VISIBLE);
-		}
-	}
 
 	public void refresh(View v) {
 		groupElements = new ArrayList<PurchaseOrder>();

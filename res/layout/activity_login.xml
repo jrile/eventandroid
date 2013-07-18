@@ -5,7 +5,7 @@
     <!-- Login progress -->
 
     <LinearLayout
-        android:id="@+id/login_status"
+        android:id="@+id/refresh_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -20,7 +20,7 @@
             android:layout_marginBottom="8dp" />
 
         <TextView
-            android:id="@+id/refresh_status_message"
+            android:id="@+id/login_status_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
