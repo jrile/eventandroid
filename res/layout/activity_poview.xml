@@ -40,4 +40,23 @@
         android:onClick="save"
         android:text="@string/save" />
 
+    <ProgressBar
+        android:id="@+id/refreshProgress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/refresh_status_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/refreshProgress"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="14dp"
+        android:text="@string/refresh_progress"
+        android:visibility="gone" />
+
 </RelativeLayout>

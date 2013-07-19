@@ -89,14 +89,16 @@ public class LoginActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login);
-
+		Intent intent = getIntent();
+		boolean timeout = intent.getBooleanExtra(POListActivity.EXTRA_TIMEOUT, false);
+		if(timeout) {
+		    Toast.makeText(this, "Your login has expired.", Toast.LENGTH_LONG).show();
+		}
 		// Set up the login form.
 
 		mLoginButton = (Button) findViewById(R.id.sign_in_button);
-
 		mUsernameView = (EditText) findViewById(R.id.username);
 		mUsernameView.setText(user);
-
 		mPasswordView = (EditText) findViewById(R.id.password);
 		mPasswordView
 				.setOnEditorActionListener(new TextView.OnEditorActionListener() {

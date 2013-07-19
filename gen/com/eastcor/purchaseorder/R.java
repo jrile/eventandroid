@@ -28,17 +28,17 @@ public final class R {
     }
     public static final class id {
         public static final int PO_Report=0x7f080007;
-        public static final int action_settings=0x7f080027;
-        public static final int approve=0x7f080021;
+        public static final int action_settings=0x7f080029;
+        public static final int approve=0x7f080023;
         public static final int buyerLabel=0x7f08000d;
         public static final int buyerText=0x7f08000e;
-        public static final int download_pdf=0x7f080020;
-        public static final int empty_text=0x7f080024;
+        public static final int download_pdf=0x7f080022;
+        public static final int empty_text=0x7f080026;
         public static final int fobPointLabel=0x7f080011;
         public static final int fobPointText=0x7f080012;
         public static final int fullfillmentDateLabel=0x7f080019;
         public static final int fullfillmentDateText=0x7f08001a;
-        public static final int groupname=0x7f080025;
+        public static final int groupname=0x7f080027;
         public static final int horizontalLayout=0x7f08000a;
         public static final int login=0x7f080005;
         public static final int login_form=0x7f080002;
@@ -49,9 +49,11 @@ public final class R {
         public static final int paymentTermsText=0x7f080010;
         public static final int poLayout=0x7f08001d;
         public static final int refresh=0x7f08001f;
+        public static final int refreshProgress=0x7f080020;
         public static final int refresh_status=0x7f080000;
-        public static final int reject=0x7f080022;
-        public static final int rejectReason=0x7f080023;
+        public static final int refresh_status_text=0x7f080021;
+        public static final int reject=0x7f080024;
+        public static final int rejectReason=0x7f080025;
         public static final int saveButton=0x7f08001e;
         public static final int shipToLabel=0x7f080013;
         public static final int shipToText=0x7f080014;
@@ -62,7 +64,7 @@ public final class R {
         public static final int sign_in_button=0x7f080006;
         public static final int totalPrice=0x7f08001c;
         public static final int totalPriceText=0x7f080008;
-        public static final int tvGroupName=0x7f080026;
+        public static final int tvGroupName=0x7f080028;
         public static final int username=0x7f080003;
         public static final int vendorLabel=0x7f08000b;
         public static final int vendorText=0x7f08000c;

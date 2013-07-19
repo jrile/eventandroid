@@ -6,20 +6,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -31,6 +26,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import android.app.ExpandableListActivity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -43,6 +39,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupExpandListener;
@@ -52,136 +49,8 @@ import android.widget.Toast;
 
 public class POListActivity extends ExpandableListActivity {
 	public final static String EXTRA_PO_NUM = "com.eastcor.purchaseorder.PO_NUM";
+	public final static String EXTRA_TIMEOUT = "com.eastcor.purchaseorder.TIMEOUT";
 	private POListTask poTask = null;
-	/**
-	 * This is adapter for expandable list-view for constructing the group and
-	 * child elements.
-	 */
-	public class ExpAdapter extends BaseExpandableListAdapter {
-
-		private Context myContext;
-		public View children[];
-
-		public ExpAdapter(Context context) {
-
-			myContext = context;
-
-			children = new View[getGroupCount()];
-			for (int i = 0; i < getGroupCount(); i++) {
-				final int temp = i;
-				LayoutInflater inflater = (LayoutInflater) myContext
-						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				children[i] = inflater.inflate(R.layout.child_row, null);
-				children[i].findViewById(R.id.approve).setOnClickListener(
-						new OnClickListener() {
-							@Override
-							public void onClick(View v) {
-								TextView rejectReason = (TextView) children[temp]
-										.findViewById(R.id.rejectReason);
-								rejectReason.setVisibility(View.GONE);
-							}
-						});
-				children[i].findViewById(R.id.reject).setOnClickListener(
-						new OnClickListener() {
-							@Override
-							public void onClick(View v) {
-								TextView rejectReason = (TextView) children[temp]
-										.findViewById(R.id.rejectReason);
-								rejectReason.setVisibility(View.VISIBLE);
-								children[temp].findViewById(R.id.rejectReason)
-										.requestFocus();
-							}
-						});
-				children[i].findViewById(R.id.download_pdf).setOnClickListener(
-						new OnClickListener() {
-							@Override
-							public void onClick(View v) {
-								Intent intent = new Intent(myContext,
-										PdfDownloadActivity.class);
-								intent.putExtra(EXTRA_PO_NUM, temp);
-								startActivity(intent);
-								Log.e("downloadPdf", String.valueOf(temp));
-							}
-						});
-
-			}
-
-		}
-
-		@Override
-		public Object getChild(int groupPosition, int childPosition) {
-			return children[childPosition];
-		}
-
-		@Override
-		public long getChildId(int groupPosition, int childPosition) {
-			return childPosition;
-		}
-
-		@Override
-		public View getChildView(int groupPosition, int childPosition,
-				boolean isLastChild, View convertView, ViewGroup parent) {
-			convertView = children[groupPosition];
-			return convertView;
-		}
-
-		@Override
-		public int getChildrenCount(int groupPosition) {
-			return 1;
-		}
-
-		@Override
-		public Object getGroup(int groupPosition) {
-			return null;
-		}
-
-		@Override
-		public int getGroupCount() {
-			// Log.e("getGroupCount", groupElements.size() + "");
-			return groupElements.size();
-		}
-
-		@Override
-		public long getGroupId(int groupPosition) {
-			return 0;
-		}
-
-		@Override
-		public View getGroupView(int groupPosition, boolean isExpanded,
-				View convertView, ViewGroup parent) {
-
-			if (convertView == null) {
-				LayoutInflater inflater = (LayoutInflater) myContext
-						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				convertView = inflater.inflate(R.layout.group_row, parent,
-						false);
-			}
-
-			TextView tvGroupName = (TextView) convertView
-					.findViewById(R.id.tvGroupName);
-			tvGroupName
-					.setText(groupElements.get(groupPosition).getListTitle());
-
-			return convertView;
-		}
-
-		@Override
-		public boolean hasStableIds() {
-			return false;
-		}
-
-		@Override
-		public boolean isChildSelectable(int groupPosition, int childPosition) {
-			return true;
-		}
-
-	}
-
-	/**
-	 * strings for group elements
-	 */
-
-	// static final ArrayList<String> groupElements = new ArrayList<String>();
 	static ArrayList<PurchaseOrder> groupElements = new ArrayList<PurchaseOrder>();
 	DisplayMetrics metrics;
 	int width;
@@ -201,12 +70,9 @@ public class POListActivity extends ExpandableListActivity {
 		return ea;
 	}
 
-
 	public void refresh(View v) {
-		groupElements = new ArrayList<PurchaseOrder>();
-		ea = null;
-		finish();
-		startActivity(getIntent());
+		POListTask task = new POListTask();
+		task.execute();
 	}
 
 	public void save(View v) {
@@ -237,8 +103,12 @@ public class POListActivity extends ExpandableListActivity {
 						xml += "<reason>" + URLEncoder.encode(reason, "UTF-8")
 								+ "</reason></po>";
 					} catch (UnsupportedEncodingException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						Toast t = Toast
+								.makeText(
+										getApplicationContext(),
+										"Encoding error, can't send your rejection reason.",
+										Toast.LENGTH_SHORT);
+						t.show();
 					}
 					Log.i("Save Button Pressed",
 							po.getPoNum() + ": " + po.getVendorName()
@@ -250,63 +120,7 @@ public class POListActivity extends ExpandableListActivity {
 			UpdateTask update = new UpdateTask(xml);
 			update.execute((Void) null);
 		} catch (IndexOutOfBoundsException e) {
-			// nothing to save...
-		}
-	}
-
-	public class UpdateTask extends AsyncTask<Void, Void, Boolean> {
-		private String xml;
-		boolean error = false;
-
-		public UpdateTask(String xml) {
-			super();
-			this.xml = xml;
-		}
-
-		@Override
-		protected Boolean doInBackground(Void... params) {
-			try {
-				URL host = new URL(
-						"http://10.0.2.2:8080/FishbowlConnect/query/update");
-				HttpPost httppost = new HttpPost(host.toString());
-				httppost.setHeader("Content-type", "application/xml");
-				ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
-				postParams.add(new BasicNameValuePair("token",
-						LoginActivity.token));
-				postParams.add(new BasicNameValuePair("xml", xml));
-				UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(
-						postParams);
-				httppost.setEntity(formEntity);
-				HttpClient httpclient = new DefaultHttpClient();
-				HttpParams httpParams = httpclient.getParams();
-				HttpConnectionParams.setConnectionTimeout(httpParams,
-						LoginActivity.HTTP_TIMEOUT);
-				HttpResponse response = httpclient.execute(httppost);
-				Log.i("Save Button Pressed", "Response received. Status code: "
-						+ response.getStatusLine().getStatusCode());
-				if (response.getStatusLine().getStatusCode() != 200) {
-					return false;
-				}
-				return true;
-			} catch (IOException e) {
-				return false;
-			}
-
-		}
-
-		@Override
-		public void onPostExecute(Boolean result) {
-			if (result) {
-				Toast msg = Toast.makeText(getApplicationContext(),
-						"Purchase Order(s) successfully saved.",
-						Toast.LENGTH_LONG);
-				msg.show();
-			} else {
-				Toast msg = Toast.makeText(getApplicationContext(),
-						"There was an error saving! Please try again.",
-						Toast.LENGTH_LONG);
-				msg.show();
-			}
+			// nothing to save... ignore
 		}
 	}
 
@@ -317,7 +131,6 @@ public class POListActivity extends ExpandableListActivity {
 		ea = (ExpAdapter) getLastNonConfigurationInstance();
 		setContentView(R.layout.activity_poview);
 		expList = getExpandableListView();
-
 		metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 		width = metrics.widthPixels;
@@ -327,24 +140,17 @@ public class POListActivity extends ExpandableListActivity {
 			// PROCESS POS HERE AND THEN CREATE ADAPTER
 			poTask = new POListTask();
 			poTask.execute((Void) null);
-			try {
-				poTask.get(60, TimeUnit.SECONDS);
-
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (TimeoutException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			ea = new ExpAdapter(this);
 			Log.i("onCreate", "Proceeding with creating adapter");
+		} else {
+			newAdapter(ea);
 		}
-		expList.setAdapter(ea);
 
+	}
+
+	public void newAdapter(ExpAdapter e) {
+		ea = e;
+		Log.i("onCreate", "Proceeding with creating adapter");
+		expList.setAdapter(ea);
 		expList.setOnGroupExpandListener(new OnGroupExpandListener() {
 			@Override
 			public void onGroupExpand(int groupPosition) {
@@ -355,7 +161,6 @@ public class POListActivity extends ExpandableListActivity {
 				}
 			}
 		});
-
 	}
 
 	public int GetDipsFromPixel(float pixels) {
@@ -367,6 +172,43 @@ public class POListActivity extends ExpandableListActivity {
 
 	public class POListTask extends AsyncTask<Void, Void, Boolean> {
 		private String result;
+		private ProgressDialog dialog;
+		private boolean loginIntent = false;
+
+		public POListTask() {
+			dialog = new ProgressDialog(POListActivity.this);
+		}
+
+		@Override
+		protected void onPreExecute() {
+			this.dialog.setMessage("Fetching information from the database...");
+			this.dialog.show();
+			groupElements = new ArrayList<PurchaseOrder>();
+		}
+
+		@Override
+		protected void onPostExecute(final Boolean success) {
+			ea = new ExpAdapter(POListActivity.this);
+			newAdapter(ea);
+			if (dialog.isShowing()) {
+				dialog.dismiss();
+			}
+			if (!success) {
+				if (loginIntent) {
+					Intent i = new Intent(getBaseContext(), LoginActivity.class);
+					i.putExtra(EXTRA_TIMEOUT, true);
+					finish();
+					startActivity(i);
+				} else {
+					Toast msg = Toast
+							.makeText(
+									getApplicationContext(),
+									"There was an error connecting to the database. Please try again.",
+									Toast.LENGTH_LONG);
+					msg.show();
+				}
+			}
+		}
 
 		@Override
 		protected Boolean doInBackground(Void... arg0) {
@@ -375,7 +217,6 @@ public class POListActivity extends ExpandableListActivity {
 						"http://10.0.2.2:8080/FishbowlConnect/query/list");
 				HttpPost httppost = new HttpPost(host.toString());
 				httppost.setHeader("Content-type", "application/xml");
-
 				ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
 				postParams.add(new BasicNameValuePair("token",
 						LoginActivity.token));
@@ -390,6 +231,9 @@ public class POListActivity extends ExpandableListActivity {
 				Log.i("POList", "Sending request for PO List...");
 				HttpResponse response = httpclient.execute(httppost);
 				HttpEntity entity = response.getEntity();
+				if (entity == null) {
+					throw new ServerException("Time out");
+				}
 				Log.i("POList", "Response recieved. Status code: "
 						+ response.getStatusLine().getStatusCode());
 				is = entity.getContent();
@@ -407,12 +251,7 @@ public class POListActivity extends ExpandableListActivity {
 				XmlPullParser parser = Xml.newPullParser();
 				parser.setInput(new StringReader(result));
 				parser.next();
-				parser.require(XmlPullParser.START_TAG, null, "polist"); // make
-																			// sure
-																			// correct
-																			// XML
-																			// is
-																			// posted
+				parser.require(XmlPullParser.START_TAG, null, "polist");
 				int type, poNum = -1;
 				float cost = 0;
 				String vendorName = null, vendorAddress = null, vendorCity = null, vendorZip = null, shipToName = null, shipToAddress = null, shipToCity = null, shipToZip = null, buyer = null, dateissued = null, shipterms = null, carrier = null, paymentTerms = null, fob = null, desc = null, tag = "";
@@ -473,22 +312,189 @@ public class POListActivity extends ExpandableListActivity {
 					}
 					parser.next();
 				}
-			} catch (MalformedURLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				return false;
 			} catch (XmlPullParserException e) {
+				// if the XML contains unexpected tokens, it's
+				// an error message indicating token expired.
+				loginIntent = true;
+				return false;
+			} catch (ServerException e) {
 				return false;
 			}
 			return true;
+		}
+	}
+
+	/**
+	 * This is adapter for expandable list-view for constructing the group and
+	 * child elements.
+	 */
+	public class ExpAdapter extends BaseExpandableListAdapter {
+		private Context myContext;
+		public View children[];
+
+		public ExpAdapter(Context context) {
+			myContext = context;
+			children = new View[getGroupCount()];
+			for (int i = 0; i < getGroupCount(); i++) {
+				final int temp = i;
+				LayoutInflater inflater = (LayoutInflater) myContext
+						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				children[i] = inflater.inflate(R.layout.child_row, null);
+				children[i].findViewById(R.id.approve).setOnClickListener(
+						new OnClickListener() {
+							@Override
+							public void onClick(View v) {
+								TextView rejectReason = (TextView) children[temp]
+										.findViewById(R.id.rejectReason);
+								rejectReason.setVisibility(View.GONE);
+							}
+						});
+				children[i].findViewById(R.id.reject).setOnClickListener(
+						new OnClickListener() {
+							@Override
+							public void onClick(View v) {
+								TextView rejectReason = (TextView) children[temp]
+										.findViewById(R.id.rejectReason);
+								rejectReason.setVisibility(View.VISIBLE);
+								children[temp].findViewById(R.id.rejectReason)
+										.requestFocus();
+							}
+						});
+				children[i].findViewById(R.id.download_pdf).setOnClickListener(
+						new OnClickListener() {
+							@Override
+							public void onClick(View v) {
+								Intent intent = new Intent(myContext,
+										PdfDownloadActivity.class);
+								intent.putExtra(EXTRA_PO_NUM, temp);
+								startActivity(intent);
+								Log.e("downloadPdf", String.valueOf(temp));
+							}
+						});
+			}
+		}
+
+		@Override
+		public Object getChild(int groupPosition, int childPosition) {
+			return children[childPosition];
+		}
+
+		@Override
+		public long getChildId(int groupPosition, int childPosition) {
+			return childPosition;
+		}
+
+		@Override
+		public View getChildView(int groupPosition, int childPosition,
+				boolean isLastChild, View convertView, ViewGroup parent) {
+			convertView = children[groupPosition];
+			return convertView;
+		}
+
+		@Override
+		public int getChildrenCount(int groupPosition) {
+			return 1;
+		}
+
+		@Override
+		public Object getGroup(int groupPosition) {
+			return null;
+		}
+
+		@Override
+		public int getGroupCount() {
+			// Log.e("getGroupCount", groupElements.size() + "");
+			return groupElements.size();
+		}
+
+		@Override
+		public long getGroupId(int groupPosition) {
+			return 0;
+		}
+
+		@Override
+		public View getGroupView(int groupPosition, boolean isExpanded,
+				View convertView, ViewGroup parent) {
+
+			if (convertView == null) {
+				LayoutInflater inflater = (LayoutInflater) myContext
+						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				convertView = inflater.inflate(R.layout.group_row, parent,
+						false);
+			}
+			TextView tvGroupName = (TextView) convertView
+					.findViewById(R.id.tvGroupName);
+			tvGroupName
+					.setText(groupElements.get(groupPosition).getListTitle());
+			return convertView;
+		}
+
+		@Override
+		public boolean hasStableIds() {
+			return false;
+		}
+
+		@Override
+		public boolean isChildSelectable(int groupPosition, int childPosition) {
+			return true;
+		}
+	}
+
+	public class UpdateTask extends AsyncTask<Void, Void, Boolean> {
+		private String xml;
+		boolean error = false;
+
+		public UpdateTask(String xml) {
+			super();
+			this.xml = xml;
+		}
+
+		@Override
+		protected Boolean doInBackground(Void... params) {
+			try {
+				URL host = new URL(
+						"http://10.0.2.2:8080/FishbowlConnect/query/update");
+				HttpPost httppost = new HttpPost(host.toString());
+				httppost.setHeader("Content-type", "application/xml");
+				ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
+				postParams.add(new BasicNameValuePair("token",
+						LoginActivity.token));
+				postParams.add(new BasicNameValuePair("xml", xml));
+				UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(
+						postParams);
+				httppost.setEntity(formEntity);
+				HttpClient httpclient = new DefaultHttpClient();
+				HttpParams httpParams = httpclient.getParams();
+				HttpConnectionParams.setConnectionTimeout(httpParams,
+						LoginActivity.HTTP_TIMEOUT);
+				HttpResponse response = httpclient.execute(httppost);
+				Log.i("Save Button Pressed", "Response received. Status code: "
+						+ response.getStatusLine().getStatusCode());
+				if (response.getStatusLine().getStatusCode() != 200) {
+					return false;
+				}
+				return true;
+			} catch (IOException e) {
+				return false;
+			}
+
+		}
+
+		@Override
+		public void onPostExecute(Boolean result) {
+			if (result) {
+				Toast msg = Toast.makeText(getApplicationContext(),
+						"Purchase Order(s) successfully saved.",
+						Toast.LENGTH_LONG);
+				msg.show();
+			} else {
+				Toast msg = Toast.makeText(getApplicationContext(),
+						"There was an error saving! Please try again.",
+						Toast.LENGTH_LONG);
+				msg.show();
+			}
 		}
 	}
 
