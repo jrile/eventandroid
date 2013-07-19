@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <string name="error_field_required">Field required</string>
+	<string name="login_progress_signing_in">Signing in&#8230;</string>
     <string name="app_name">Purchase Order Status</string>
     <string name="action_settings">Settings</string>
     <string name="username">Enter username</string>
@@ -18,13 +19,13 @@
     <string name="title_activity_pdf_download">Report</string>
     <string name="vendor_label">Vendor:</string>
     <string name="blank_vendor_data">No vendor data on file.</string>
-    <string name="blank_buyer"></string>
-    <string name="blank_payment_terms"></string>
-    <string name="blank_fob_point"></string>
-    <string name="blank_shipping_terms"></string>
-    <string name="blank_ship_via"></string>
-    <string name="blank_fullfillment_date"></string>
-    <string name="blank_ship_to"></string>
+    <string name="blank_buyer">No buyer on file.</string>
+    <string name="blank_payment_terms">No payment terms on file.</string>
+    <string name="blank_fob_point">No FOB on file.</string>
+    <string name="blank_shipping_terms">No shipping terms on file.</string>
+    <string name="blank_ship_via">No shipping info on file.</string>
+    <string name="blank_fullfillment_date">No date on file.</string>
+    <string name="blank_ship_to">No shipping info on file.</string>
     <string name="shipToLabel">Ship To:</string>
     <string name="buyerLabel">Buyer:</string>
     <string name="paymentTerms">Payment Terms:</string>
@@ -32,7 +33,7 @@
     <string name="shippingTerms">Shipping Terms:</string>
     <string name="shipVia">Ship Via:</string>
     <string name="fullfillmentDateLabel">Fullfillment Date:</string>
-    <string name="blank_items"></string>
+    <string name="blank_items">No items.</string>
     <string name="blank_total_price"></string>
     <string name="title_activity_query_service">QueryService</string>
     <string name="title_activity_query_receiver">Query Receiver</string>
