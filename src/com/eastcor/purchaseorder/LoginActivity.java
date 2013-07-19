@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -34,6 +33,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -41,6 +41,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Xml;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -59,17 +62,16 @@ public class LoginActivity extends Activity {
 	 */
 	public static final String EXTRA_EMAIL = "com.eastcor.purchaseorder.USER";
 	public static final String EXTRA_KEY = "com.eastcor.purchaseorder.KEY";
+	public static final String FISHBOWL_HOST = "FishbowlHost";
 
 	/**
 	 * Keep track of the login task to ensure we can cancel it if requested.
 	 */
 	private UserLoginTask mAuthTask = null;
 
-	public static final int IA_KEY = 8675309;
-	public static String ticketKey;
 	public static final String EXTRA_USER = "com.eastcor.purchaseorder.USER";
 	public static final int HTTP_TIMEOUT = 10000;
-	public static URL host;
+	public static String host;
 	public static String token = null;
 
 	// Values for email and password at the time of the login attempt.
@@ -89,6 +91,10 @@ public class LoginActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login);
+		
+		SharedPreferences pref = getSharedPreferences(FISHBOWL_HOST, 0);
+		host = pref.getString("url", "http://10.0.2.2:8080/FishbowlConnect/");
+
 		Intent intent = getIntent();
 		boolean timeout = intent.getBooleanExtra(POListActivity.EXTRA_TIMEOUT, false);
 		if(timeout) {
@@ -138,6 +144,20 @@ public class LoginActivity extends Activity {
 					}
 				});
 	}
+	
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.main, menu);
+	    return true;
+	}
+	
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    //respond to menu item selection
+		Intent settings = new Intent(this, SettingsActivity.class);
+		startActivity(settings);
+		return true;
+	}
+	
 
 	/**
 	 * Attempts to sign in or register the account specified by the login form.
@@ -243,10 +263,8 @@ public class LoginActivity extends Activity {
 		@Override
 		protected Boolean doInBackground(Void... params) {
 			String result = null;
-			try {
-				host = new URL("http://10.0.2.2:8080/FishbowlConnect/login");
-				
-				HttpPost httppost = new HttpPost(host.toString());
+			try {				
+				HttpPost httppost = new HttpPost(host+"login");
 				httppost.setHeader("Content-type", "application/json");
 				
 				ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
@@ -305,7 +323,7 @@ public class LoginActivity extends Activity {
 			} catch (XmlPullParserException e) {
 				Log.e("LoginActivity", "Error reading XML: " + e.getMessage());
 				connectionError = true;
-				errorMsg = e.getMessage();
+				errorMsg = "Error reading information from server, make sure host name is correct.";
 			}
 			return false;
 		}

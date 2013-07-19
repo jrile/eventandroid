@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +38,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupExpandListener;
@@ -213,9 +211,7 @@ public class POListActivity extends ExpandableListActivity {
 		@Override
 		protected Boolean doInBackground(Void... arg0) {
 			try {
-				URL host = new URL(
-						"http://10.0.2.2:8080/FishbowlConnect/query/list");
-				HttpPost httppost = new HttpPost(host.toString());
+				HttpPost httppost = new HttpPost(LoginActivity.host+"query/list");
 				httppost.setHeader("Content-type", "application/xml");
 				ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
 				postParams.add(new BasicNameValuePair("token",
@@ -315,6 +311,7 @@ public class POListActivity extends ExpandableListActivity {
 			} catch (IOException e) {
 				return false;
 			} catch (XmlPullParserException e) {
+				e.printStackTrace();
 				// if the XML contains unexpected tokens, it's
 				// an error message indicating token expired.
 				loginIntent = true;
@@ -454,9 +451,7 @@ public class POListActivity extends ExpandableListActivity {
 		@Override
 		protected Boolean doInBackground(Void... params) {
 			try {
-				URL host = new URL(
-						"http://10.0.2.2:8080/FishbowlConnect/query/update");
-				HttpPost httppost = new HttpPost(host.toString());
+				HttpPost httppost = new HttpPost(LoginActivity.host+"query/update");
 				httppost.setHeader("Content-type", "application/xml");
 				ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
 				postParams.add(new BasicNameValuePair("token",

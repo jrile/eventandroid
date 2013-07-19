@@ -43,10 +43,15 @@
         </activity>
 
         <service
-            android:name=".AccountAuthenticatorService"
+            android:name="com.eastcor.purchaseorder.AccountAuthenticatorService"
             android:exported="false"
             android:process=":auth" >
         </service>
+
+        <activity
+            android:name="com.eastcor.purchaseorder.SettingsActivity"
+            android:label="@string/title_activity_settings" >
+        </activity>
     </application>
 
 </manifest>

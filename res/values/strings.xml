@@ -9,7 +9,6 @@
     <string name="title_activity_poview">Purchase Order View</string>
     <string name="title_activity_polist">Purchase Order List</string>
     <string name="poList">poList</string>
-    <string name="hello_world">Hello world!</string>
     <string name="main_no_items">No items to display</string>
     <string name="download_pdf">View Report</string>
     <string name="approve">Approve</string>
@@ -18,14 +17,14 @@
     <string name="save">Save</string>
     <string name="title_activity_pdf_download">Report</string>
     <string name="vendor_label">Vendor:</string>
-    <string name="blank_vendor_data">Specialty Cases\n123 Sesame St.\nLaurel, MD 20723</string>
-    <string name="blank_buyer">jrile</string>
-    <string name="blank_payment_terms">CCD</string>
-    <string name="blank_fob_point">Origin</string>
-    <string name="blank_shipping_terms">Prepaid &amp; Billed</string>
-    <string name="blank_ship_via">Overnight</string>
-    <string name="blank_fullfillment_date">6/30/13 2:43 PM </string>
-    <string name="blank_ship_to">Eastcor\n8682 Brooks Drive\nEaston, MD 21601</string>
+    <string name="blank_vendor_data">No vendor data on file.</string>
+    <string name="blank_buyer"></string>
+    <string name="blank_payment_terms"></string>
+    <string name="blank_fob_point"></string>
+    <string name="blank_shipping_terms"></string>
+    <string name="blank_ship_via"></string>
+    <string name="blank_fullfillment_date"></string>
+    <string name="blank_ship_to"></string>
     <string name="shipToLabel">Ship To:</string>
     <string name="buyerLabel">Buyer:</string>
     <string name="paymentTerms">Payment Terms:</string>
@@ -33,14 +32,17 @@
     <string name="shippingTerms">Shipping Terms:</string>
     <string name="shipVia">Ship Via:</string>
     <string name="fullfillmentDateLabel">Fullfillment Date:</string>
-    <string name="blank_items">Part/Description\t\t\t\t\t\t\t\t\t\t\tPrice\nPelican iM2100 storm case with...\t\t\t$88</string>
-    <string name="blank_total_price">Total: $88.00</string>
+    <string name="blank_items"></string>
+    <string name="blank_total_price"></string>
     <string name="title_activity_query_service">QueryService</string>
     <string name="title_activity_query_receiver">Query Receiver</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="ACCOUNT_TYPE">Account Type</string>
     <string name="login_error"></string>
     <string name="refresh">Refresh</string>
-    <string name="refresh_progress">Grabbing information from database...</string>
+    <string name="refresh_progress">Grabbing information from database&#8230;</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="settings_host_label">Host:</string>
+    <string name="blank_host">ex: 10.0.2.2:8080/FishbowlConnect</string>
 
 </resources>
