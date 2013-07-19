@@ -45,6 +45,14 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * Main activity that appears after login. Displays 
+ * all items in the Fishbowl Inventory that are marked
+ * as "Waiting for Approval."
+ * 
+ * @author jrile
+ *
+ */
 public class POListActivity extends ExpandableListActivity {
 	public final static String EXTRA_PO_NUM = "com.eastcor.purchaseorder.PO_NUM";
 	public final static String EXTRA_TIMEOUT = "com.eastcor.purchaseorder.TIMEOUT";
@@ -55,6 +63,11 @@ public class POListActivity extends ExpandableListActivity {
 	ExpandableListView expList;
 	ExpAdapter ea;
 
+	/**
+	 * Back button acts as the home button in this case. 
+	 * Implemented so users don't have to login if they
+	 * want to send the application to the background.
+	 */
 	@Override
 	public void onBackPressed() {
 		Intent intent = new Intent(Intent.ACTION_MAIN);
@@ -63,16 +76,30 @@ public class POListActivity extends ExpandableListActivity {
 		startActivity(intent);
 	}
 
+	/**
+	 * Retains the list adapter with all the information already
+	 * retrieved from the database.
+	 * @return ExpList adapter
+	 */
 	@Override
 	public Object onRetainNonConfigurationInstance() {
 		return ea;
 	}
 
+	/**
+	 * Creates a new POListTask to refresh information from database.
+	 * @param v unused
+	 */
 	public void refresh(View v) {
 		POListTask task = new POListTask();
 		task.execute();
 	}
 
+	/**
+	 * Creates an xml document to send to the server containing 
+	 * approval/rejection information.
+	 * @param v unused
+	 */
 	public void save(View v) {
 		try {
 			String xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<polist>\n";
@@ -122,6 +149,12 @@ public class POListActivity extends ExpandableListActivity {
 		}
 	}
 
+	/**
+	 * Checks to see if there is an existing adapter. If not, create 
+	 * a new task to fetch information from database and create one.
+	 * If there is, load it into the view.
+	 * @param savedInstanceState Saved instance from before creation (screen orientation)
+	 */
 	@SuppressWarnings("deprecation")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -132,10 +165,10 @@ public class POListActivity extends ExpandableListActivity {
 		metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
 		width = metrics.widthPixels;
-		expList.setIndicatorBounds(width - GetDipsFromPixel(50), width
-				- GetDipsFromPixel(10));
+		expList.setIndicatorBounds(width - getDipsFromPixel(50), width
+				- getDipsFromPixel(10));
 		if (ea == null) {
-			// PROCESS POS HERE AND THEN CREATE ADAPTER
+			// process POs here.
 			poTask = new POListTask();
 			poTask.execute((Void) null);
 			Log.i("onCreate", "Proceeding with creating adapter");
@@ -145,6 +178,10 @@ public class POListActivity extends ExpandableListActivity {
 
 	}
 
+	/**
+	 * Sets a new adapter and refreshes the views contents.
+	 * @param e The adapter containing the purchase orders.
+	 */
 	public void newAdapter(ExpAdapter e) {
 		ea = e;
 		Log.i("onCreate", "Proceeding with creating adapter");
@@ -161,22 +198,36 @@ public class POListActivity extends ExpandableListActivity {
 		});
 	}
 
-	public int GetDipsFromPixel(float pixels) {
-		// Get the screen's density scale
+	/**
+	 * Get screen's density scale and convert to pixels based on density scale.
+	 * @param pixels 
+	 * @return 
+	 */
+	public int getDipsFromPixel(float pixels) {
 		final float scale = getResources().getDisplayMetrics().density;
-		// Convert the dps to pixels, based on density scale
 		return (int) (pixels * scale + 0.5f);
 	}
 
+	/**
+	 * Purchase Order List Task, retrieves purchase order list from server.
+	 * @author jrile
+	 *
+	 */
 	public class POListTask extends AsyncTask<Void, Void, Boolean> {
 		private String result;
 		private ProgressDialog dialog;
 		private boolean loginIntent = false;
 
+		/**
+		 * Default constructor, creates a dialog.
+		 */
 		public POListTask() {
 			dialog = new ProgressDialog(POListActivity.this);
 		}
 
+		/**
+		 * Shows a dialog message stating information is being fetched.
+		 */
 		@Override
 		protected void onPreExecute() {
 			this.dialog.setMessage("Fetching information from the database...");
@@ -184,6 +235,12 @@ public class POListActivity extends ExpandableListActivity {
 			groupElements = new ArrayList<PurchaseOrder>();
 		}
 
+		/**
+		 * Dismisses dialog, if there was an error connecting to the server, 
+		 * display an error message. If the user's token has expired, inform 
+		 * them of that and redirect to the login screen.
+		 * @param success If the task was executed successfully.
+		 */
 		@Override
 		protected void onPostExecute(final Boolean success) {
 			ea = new ExpAdapter(POListActivity.this);
@@ -208,6 +265,12 @@ public class POListActivity extends ExpandableListActivity {
 			}
 		}
 
+		/**
+		 * Create new post attempt to retrieve purchase order list
+		 * from server.
+		 * @param arg0 unused
+		 * @return Boolean If the task completed successfully.
+		 */
 		@Override
 		protected Boolean doInBackground(Void... arg0) {
 			try {
@@ -331,6 +394,11 @@ public class POListActivity extends ExpandableListActivity {
 		private Context myContext;
 		public View children[];
 
+		/**
+		 * Constructor for a new expandable list adapter. Assumes the element
+		 * 'groupElements' is already full from the POListTask. 
+		 * @param context Context sent from
+		 */
 		public ExpAdapter(Context context) {
 			myContext = context;
 			children = new View[getGroupCount()];
@@ -338,6 +406,7 @@ public class POListActivity extends ExpandableListActivity {
 				final int temp = i;
 				LayoutInflater inflater = (LayoutInflater) myContext
 						.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				// recreate the same expand view for each child
 				children[i] = inflater.inflate(R.layout.child_row, null);
 				children[i].findViewById(R.id.approve).setOnClickListener(
 						new OnClickListener() {
@@ -402,7 +471,6 @@ public class POListActivity extends ExpandableListActivity {
 
 		@Override
 		public int getGroupCount() {
-			// Log.e("getGroupCount", groupElements.size() + "");
 			return groupElements.size();
 		}
 
@@ -439,10 +507,20 @@ public class POListActivity extends ExpandableListActivity {
 		}
 	}
 
+	/**
+	 * Task to send information to the server to be updated.
+	 * @author jrile
+	 *
+	 */
 	public class UpdateTask extends AsyncTask<Void, Void, Boolean> {
 		private String xml;
 		boolean error = false;
 
+		/**
+		 * 
+		 * @param xml An XML document, should start with <polist> and have 
+		 * each separate purchase order under <po>.
+		 */
 		public UpdateTask(String xml) {
 			super();
 			this.xml = xml;
